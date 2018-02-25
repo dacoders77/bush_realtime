@@ -992,20 +992,15 @@ Vue.component('example-component', __webpack_require__(40));
 var app = new Vue({
     el: '#app',
     created: function created() {
-        var i = 0;
         Echo.channel('channelDemoEvent').listen('eventTrigger', function (e) {
             //alert('The event has been triggered! Here is the alert box for proofe!');
-            i++;
-            if (i == 20){
-                document.body.innerHTML = ''; // Clear the page
-                i = 0; // Reset the counter
-            }
-
+            //console.log('zzzzz');
 
             var d = new Date();
             //document.getElementById("demo").innerHTML = d;
             //console.log('hello world: ' + d);
             document.write('btcusd2: ' + e.update["tradeId"] + '<br>'); // e.update. update is the variable which is defined in event trigger
+
         });
     }
 });
@@ -1028,9 +1023,9 @@ window._ = __webpack_require__(12);
  */
 
 try {
-  window.$ = window.jQuery = __webpack_require__(14);
+    window.$ = window.jQuery = __webpack_require__(14);
 
-  __webpack_require__(15);
+    __webpack_require__(15);
 } catch (e) {}
 
 /**
@@ -1052,9 +1047,9 @@ window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 var token = document.head.querySelector('meta[name="csrf-token"]');
 
 if (token) {
-  window.axios.defaults.headers.common['X-CSRF-TOKEN'] = token.content;
+    window.axios.defaults.headers.common['X-CSRF-TOKEN'] = token.content;
 } else {
-  console.error('CSRF token not found: https://laravel.com/docs/csrf#csrf-x-csrf-token');
+    console.error('CSRF token not found: https://laravel.com/docs/csrf#csrf-x-csrf-token');
 }
 
 /**
@@ -1068,10 +1063,10 @@ if (token) {
 window.Pusher = __webpack_require__(36);
 
 window.Echo = new __WEBPACK_IMPORTED_MODULE_0_laravel_echo___default.a({
-  broadcaster: 'pusher',
-  key: 'f950e12d44372aca7a21',
-  cluster: 'eu',
-  encrypted: true
+    broadcaster: 'pusher',
+    key: 'f950e12d44372aca7a21',
+    cluster: 'eu',
+    encrypted: true
 });
 
 /***/ }),
