@@ -994,7 +994,7 @@ var app = new Vue({
     created: function created() {
         var i = 0;
         Echo.channel('channelDemoEvent').listen('eventTrigger', function (e) {
-            //alert('The event has been triggered! Here is the alert box for proofe!');
+            //alert('The event has been triggered! Here is the alert box for proof!');
             i++;
             if (i == 20){
                 document.body.innerHTML = ''; // Clear the page
@@ -1005,7 +1005,7 @@ var app = new Vue({
             var d = new Date();
             //document.getElementById("demo").innerHTML = d;
             //console.log('hello world: ' + d);
-            document.write('btcusd2: ' + e.update["tradeId"] + '<br>'); // e.update. update is the variable which is defined in event trigger
+            document.write('btcusd. trade ID: ' + e.update["tradeId"] + 'trade date: ' + e.update["tradeDate"] + 'trade volume: ' + e.update["tradeVolume"] + 'trade price: ' + e.update["tradePrice"] +'<br>'); // e.update. update is the variable which is defined in event trigger
         });
     }
 });
