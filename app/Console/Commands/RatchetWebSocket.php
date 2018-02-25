@@ -52,10 +52,15 @@ class RatchetWebSocket extends Command
         $connector('wss://api.bitfinex.com/ws/2', [], ['Origin' => 'http://localhost'])
             ->then(function(\Ratchet\Client\WebSocket $conn) {
                 $conn->on('message', function(\Ratchet\RFC6455\Messaging\MessageInterface $msg) use ($conn) {
-                    echo "Received: {$msg}\n";
+                    //echo "Received: {$msg}\n";
+
                     //$conn->close(); // Connection close
-                    event(new eventTrigger("" . $msg));
-                    //event(new eventTrigger("hello"));
+                    //event(new eventTrigger("" . $msg)); // Fire new event. Events are located in app/Events
+                    //var_dump($msg);
+                    //echo json_decode($msg, true)
+
+                    RatchetWebSocket::out($msg);
+
                 });
 
                 $conn->on('close', function($code = null, $reason = null) {
@@ -77,6 +82,51 @@ class RatchetWebSocket extends Command
             });
 
         $loop->run();
+
+    }
+
+    // 'te', 'tu' Flags explained http://blog.bitfinex.com/api/websocket-api-update/
+    // 'te' - When the trades is regeristed at the exchange
+    // 'tu' - When the actual trade has happened. Delayed for 1-2 seconds from 'te'
+    // 'hb' - Heart beating. If there is no new message in the channel for 1 second, Websocket server will send you an heartbeat message in this format
+    // SNAPSHOT (the initial message) https://docs.bitfinex.com/docs/ws-general
+
+    public function out($message)
+    {
+
+        $jsonMessage = json_decode($message->getPayload(), true); // Methods http://socketo.me/api/class-Ratchet.RFC6455.Messaging.MessageInterface.html
+        //print_r($jsonMessage);
+        //print_r(array_keys($z));
+
+        //echo $message->__toString() . "\n"; // Decode each message
+
+        if (array_key_exists('chanId',$jsonMessage)){
+            echo "";
+            //echo "***** parsed chanId: " . $jsonMessage['chanId'] . "\n";
+            $chanId = $jsonMessage['chanId']; // Parsed channel ID then we are gonna listen exactley to this channel number. It changes each time you make a new connection
+        }
+
+
+        $nojasonMessage = json_decode($message->getPayload());
+        if (!array_key_exists('event',$jsonMessage)){ // All messages excep first two associated arrays
+            if ($nojasonMessage[1] == "te") // Only for the messages with 'te' flag. The faster ones
+            {
+                echo "id:" . $nojasonMessage[2][0];
+                echo " date:" . $nojasonMessage[2][1];
+                echo " volume:" . $nojasonMessage[2][2];
+                echo " price:" . $nojasonMessage[2][3] . "\n";
+
+                $messageArray['tradeId'] = $nojasonMessage[2][0];
+                $messageArray['tradeDate'] = $nojasonMessage[2][1];
+                $messageArray['tradeVolume'] = $nojasonMessage[2][2];
+                $messageArray['tradePrice'] = $nojasonMessage[2][3];
+
+                event(new eventTrigger($messageArray)); // Fire new event. Events are located in app/Events
+
+            }
+
+        }
+
 
     }
 }

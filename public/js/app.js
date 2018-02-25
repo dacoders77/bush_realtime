@@ -1005,7 +1005,7 @@ var app = new Vue({
             var d = new Date();
             //document.getElementById("demo").innerHTML = d;
             //console.log('hello world: ' + d);
-            document.write('btcusd: ' + e.update + '<br>'); // e.update. update is the variable which is defined in event trigger
+            document.write('btcusd2: ' + e.update["tradeId"] + '<br>'); // e.update. update is the variable which is defined in event trigger
         });
     }
 });
