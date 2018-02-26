@@ -989,6 +989,31 @@ window.Vue = __webpack_require__(37);
 
 Vue.component('example-component', __webpack_require__(40));
 
+        // Create chart
+        var chart = new Highcharts.stockChart('container', {
+            plotOptions: {
+                series: {
+                    dataGrouping: {
+                        forced: false
+                    }
+                },
+                marker: {
+                    fillColor: 'blue',
+                    lineColor: 'blue',
+                    lineWidth: 1,
+                    radius: 2,
+                    symbol: 'circle'
+                },
+
+
+            },
+            series: [{
+                type: 'line',
+                //data: [29.9, 71.5, 106.4, 129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4]
+                data: []
+            }]
+        });
+
 var app = new Vue({
     el: '#app',
     created: function created() {
@@ -996,19 +1021,34 @@ var app = new Vue({
         Echo.channel('channelDemoEvent').listen('eventTrigger', function (e) {
             //alert('The event has been triggered! Here is the alert box for proof!');
             i++;
-            if (i == 20){
-                document.body.innerHTML = ''; // Clear the page
+            if (i == 20){ // Quantity of records on the page
+                //document.body.innerHTML = ''; // Clear the page
                 i = 0; // Reset the counter
             }
 
-
             var d = new Date();
             //document.getElementById("demo").innerHTML = d;
-            //console.log('hello world: ' + d);
-            document.write('btcusd. trade ID: ' + e.update["tradeId"] + 'trade date: ' + e.update["tradeDate"] + 'trade volume: ' + e.update["tradeVolume"] + 'trade price: ' + e.update["tradePrice"] +'<br>'); // e.update. update is the variable which is defined in event trigger
+            console.log('hello world: ' + d);
+
+            //document.write('btcusd. trade ID: ' + e.update["tradeId"] + ' trade date: ' + e.update["tradeDate"] + ' trade volume: ' + e.update["tradeVolume"] + ' trade price: ' + e.update["tradePrice"] +'<br>'); // e.update. update is the variable which is defined in event trigger
+            chart.series[0].addPoint((e.update["tradeDate"], e.update["tradePrice"]), true, chart.series[0].data.length > 100);
+
+
         });
     }
 });
+
+
+
+
+
+
+
+
+
+
+
+
 
 /***/ }),
 /* 11 */
@@ -1050,6 +1090,7 @@ window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
  */
 
 var token = document.head.querySelector('meta[name="csrf-token"]');
+var chart2;
 
 if (token) {
   window.axios.defaults.headers.common['X-CSRF-TOKEN'] = token.content;
