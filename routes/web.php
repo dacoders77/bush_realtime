@@ -13,6 +13,8 @@ use App\Events\eventTrigger; // Linked the event
 |
 */
 
+// Default controllers
+
 Route::get('/', function () {
     return view('welcome');
 });
@@ -24,3 +26,11 @@ Route::get('/alertBox', function (){ // The page on which the event is shown
 Route::get('/fireEvent', function (){ // Event trigger
     event(new eventTrigger); // Create new event. This can be done from any part of the code
 });
+
+// Custom controllers
+
+// Api request to bitfinex
+Route::get('/history', 'HistoryFinex@index')->name('history.get'); // Controller is called using the given name
+
+// Load data from DB and return it to the chart
+route::get('/loaddata', 'LoadDataFromDB@index')->name('loadJsonFromDB'); // Controller call and passing {z} to it

@@ -989,31 +989,73 @@ window.Vue = __webpack_require__(37);
 
 Vue.component('example-component', __webpack_require__(40));
 
-        // Create chart
-        var chart = new Highcharts.stockChart('container', {
-            plotOptions: {
-                series: {
-                    dataGrouping: {
-                        forced: false
-                    }
-                },
-                marker: {
-                    fillColor: 'blue',
-                    lineColor: 'blue',
-                    lineWidth: 1,
-                    radius: 2,
-                    symbol: 'circle'
-                },
 
+// **********************************************
 
-            },
-            series: [{
-                type: 'line',
-                //data: [29.9, 71.5, 106.4, 129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4]
-                data: []
-            }]
+        var chart;
+        var request = $.get('loaddata'); // Request initiate. Controller call. AJAX request.
+
+        // Button handlers
+        $('#update').click(function () {
+            //chart.series[0].data[3].update(Math.floor(Math.random() * 10));
+            //console.log('hello world: ' + (Math.floor(Math.random() * 10)));
+
+            var last = chart.series[0].data[chart.series[0].data.length - 1];
+            last.update({
+                //'open': 1000,
+                //'high': 11500,
+                //'low': 8500,
+                'close': 9500 + (Math.floor(Math.random() * 800))
+            }, true);
+
         });
 
+        $('#load_history').click(function () {
+
+        });
+
+        //var request = $.get('loaddata'); // Request initiate. Controller call. AJAX request.
+        request.done(function(response) { // Ajax request if success
+
+            //console.log(response[0][0]);
+            //chart.series[0].addPoint(data[i], false, true);
+            //chart.series[0].addPoint([55,4,6,7,8]); // https://api.highcharts.com/class-reference/Highcharts.Series.html#addPoint
+            //chart.series[0].addPoint([4, 10545, 10580, 10450, 10560]);
+
+
+            // Create chart. no animation: http://jsfiddle.net/qk44erj6/
+            chart = new Highcharts.stockChart('container', {
+
+                chart: {
+                    animation: false
+                },
+
+                series: [{
+                    //type: 'line',
+                    //data: [29.9, 71.5, 106.4, 129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4], // chart.series[0].data[2].update(e.update["tradePrice"]);1518566400000
+
+                    //name: 'ETH',
+                    //visible: true,
+                    //enableMouseTracking: true,
+
+
+                    type: 'candlestick',
+
+                    //data: [[1, 10545, 10580, 10450, 10560],[2, 10545, 10580, 10450, 10560],[3, 10545, 10580, 10450, 10560]], // 1518566400000
+                    //data: [[1,1],[2,3],[3,5],[4,2],[5,7]]
+
+                    data: response[0],
+                    dataGrouping: {
+                        enabled: false
+                    }
+                }]
+            }); // chart
+
+        });
+
+
+
+// Websocket Laravel echo - VueJS listener
 var app = new Vue({
     el: '#app',
     created: function created() {
@@ -1026,13 +1068,18 @@ var app = new Vue({
                 i = 0; // Reset the counter
             }
 
-            var d = new Date();
-            //document.getElementById("demo").innerHTML = d;
-            console.log('hello world: ' + d);
+            var last = chart.series[0].data[chart.series[0].data.length - 1];
+            last.update({
+                //'open': 1000,
+                //'high': 11500,
+                //'low': e.update["tradePrice"],
+                'close': e.update["tradePrice"]
+            }, true);
 
-            //document.write('btcusd. trade ID: ' + e.update["tradeId"] + ' trade date: ' + e.update["tradeDate"] + ' trade volume: ' + e.update["tradeVolume"] + ' trade price: ' + e.update["tradePrice"] +'<br>'); // e.update. update is the variable which is defined in event trigger
-            chart.series[0].addPoint((e.update["tradeDate"], e.update["tradePrice"]), true, chart.series[0].data.length > 100);
 
+    
+            //chart.series[0].data[3].update(Math.floor(Math.random() * 10)); // Works good
+            //chart.series[0].data[2].update(e.update["tradePrice"]);
 
         });
     }

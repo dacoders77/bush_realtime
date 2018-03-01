@@ -14,6 +14,9 @@
 </head>
 <body>
 
+<button id="update">Update chart</button>
+<button id="load_history">load_history</button>
+
 <div id="app">
     <p>This is the event listener page. eventListener.blade.php</p>
 </div>
@@ -22,8 +25,11 @@
 
 </div>
 
-
 <script src="js/app.js" charset="ut8-8"></script>
+
+<script>
+
+</script>
 
 
 </body>

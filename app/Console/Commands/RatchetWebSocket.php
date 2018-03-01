@@ -111,12 +111,13 @@ class RatchetWebSocket extends Command
         if (!array_key_exists('event',$jsonMessage)){ // All messages excep first two associated arrays
             if ($nojasonMessage[1] == "te") // Only for the messages with 'te' flag. The faster ones
             {
-                echo "id:" . $nojasonMessage[2][0];
-                echo " date:" . $nojasonMessage[2][1];
-                echo " volume:" . $nojasonMessage[2][2];
-                echo " price:" . $nojasonMessage[2][3] . "\n";
+                echo "id: " . $nojasonMessage[2][0];
+                echo " date: " . gmdate("Y-m-d G:i:s", ($nojasonMessage[2][1] / 1000));
+                echo " volume: " . $nojasonMessage[2][2];
+                echo " price: " . $nojasonMessage[2][3] . "\n";
 
                 $messageArray['tradeId'] = $nojasonMessage[2][0];
+                //$messageArray['tradeDate'] = $nojasonMessage[2][1]; // gmdate("Y-m-d G:i:s", ($nojasonMessage[2][1] / 1000))
                 $messageArray['tradeDate'] = $nojasonMessage[2][1];
                 $messageArray['tradeVolume'] = $nojasonMessage[2][2];
                 $messageArray['tradePrice'] = $nojasonMessage[2][3];
