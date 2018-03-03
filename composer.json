@@ -11,6 +11,7 @@
         "guzzlehttp/guzzle": "~6.0",
         "laravel/framework": "5.5.*",
         "laravel/tinker": "~1.0",
+        "nesbot/carbon": "^1.23",
         "pusher/pusher-php-server": "^3.0",
         "ratchet/pawl": "^0.3.1"
     },

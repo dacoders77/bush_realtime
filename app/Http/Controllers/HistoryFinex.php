@@ -19,8 +19,6 @@ class HistoryFinex extends Controller
 
         DB::table('btc_history')->truncate(); // Drop all records in the table
 
-        $start = mktime(20, 00, 00, 03, 01, 2018) * 1000;
-        $end = mktime(23, 00, 00, 03, 01, 2018) * 1000;
         $timeframe = "1m";
         $asset = "BTCUSD";
 
@@ -30,14 +28,18 @@ class HistoryFinex extends Controller
             'timeout' => 50 // If make this value small - fatal error occurs
         ]);
 
-        $restEndpoint = "candles/trade:" . $timeframe . ":t" . $asset . "/hist?limit=20&start=" . $start . "&end=" . $end . "&sort=1";
+        //$restEndpoint = "candles/trade:" . $timeframe . ":t" . $asset . "/hist?limit=20&start=" . $start . "&end=" . $end . "&sort=1";
 
-        echo "endpoint: " . $restEndpoint . "<br>";
+        $restEndpoint = "candles/trade:" . $timeframe . ":t" . $asset . "/hist?limit=5"; // Geta bars from the predent moment. No dates needed. Values must be reversed befor adding to DB. Otherwise - the chart is not properly rendered, all bars look fat
+
+        //echo "endpoint: " . $restEndpoint . "<br>";
+
+
 
         // http://docs.guzzlephp.org/en/stable/request-options.html#http-errors
         $response = $api_connection->request('GET', $restEndpoint, ['http_errors' => true ]);
 
-        echo "GUZZLE reason: " . $response->getReasonPhrase() . "<br>";
+        //echo "GUZZLE reason: " . $response->getReasonPhrase() . "<br>";
 
         $body = $response->getBody(); // Get the body out of the request
         $json = json_decode($body, true); // Decode JSON. Associative array will be outputed
@@ -49,16 +51,17 @@ class HistoryFinex extends Controller
         if ($response->getStatusCode() == 200) // Request successful
         {
             $i = 1;
-            foreach ($json as $z) {
+            foreach (array_reverse($json) as $z) {
 
-                echo '<pre>';
-                echo $z[0] . " ";
-                echo $i . " " . gmdate("d-m-Y G:i:s", ($z[0] / 1000));
-                echo '</pre>';
+                //echo '<pre>';
+                //echo $z[0] . " ";
+                //echo $i . " " . gmdate("d-m-Y G:i:s", ($z[0] / 1000)) . " open: " . $z[1] ;
+                //echo '</pre>';
                 $i++;
 
 
-                DB::table('btc_history')->insert(array(
+
+                DB::table('btc_history')->insert(array( // Record to DB
                     'date' => gmdate("Y-m-d G:i:s", ($z[0] / 1000)), // Date in regular format. Converted from unix timestamp
                     'time_stamp' => $z[0],
                     'open' => $z[1],
@@ -70,14 +73,13 @@ class HistoryFinex extends Controller
 
             } // foreach
 
-            session()->flash('notif', 'The historical data loaded successfully! ' . $i . ' candles in total. Last loaded date: ');
 
         } // if 200
 
         else // Request is not successful. Error code is not 200
 
         {
-            echo "<script>alert('Request error: too many requests!' )</script>"; // $response->getReasonPhrase()
+            //echo "<script>alert('Request error: too many requests!' )</script>"; // $response->getReasonPhrase()
         }
 
 
