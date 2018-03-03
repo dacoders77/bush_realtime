@@ -1087,12 +1087,6 @@ var app = new Vue({
     created: function created() {
         Echo.channel('channelDemoEvent').listen('eventTrigger', function (e) {
 
-            //alert('The event has been triggered! Here is the alert box for proof!');
-            i++;
-            if (i == 20){ // Quantity of records on the page
-                //document.body.innerHTML = ''; // Clear the page
-                i = 0; // Reset the counter
-            }
 
 
             var last = chart.series[0].data[chart.series[0].data.length - 1];
@@ -1107,17 +1101,17 @@ var app = new Vue({
             // Listen for 1min bar expiration. When this event is rised - close the barr and and a new one
             if (e.update["flag"]) {
                 console.log('new bar is added');
-                chart.series[0].addPoint([e.update["tradeDate"],e.update["tradePrice"],e.update["tradePrice"],e.update["tradePrice"],e.update["tradePrice"]],true, true); // Works good
+                chart.series[0].addPoint([e.update["tradeDate"],e.update["tradePrice"],e.update["tradePrice"],e.update["tradePrice"],e.update["tradePrice"]],true, false); // Works good
             }
 
 
             //alert('The event has been triggered! Here is the alert box for proofe!');
             //console.log('zzzzz');
 
-            var d = new Date();
+            //var d = new Date();
             //document.getElementById("demo").innerHTML = d;
             //console.log('hello world: ' + d);
-            document.write('btcusd2: ' + e.update["tradeId"] + '<br>'); // e.update. update is the variable which is defined in event trigger
+            //document.write('btcusd2: ' + e.update["tradeId"] + '<br>'); // e.update. update is the variable which is defined in event trigger
 
 
 
