@@ -35,7 +35,7 @@ class HistoryFinex extends Controller
         // If the initial start is true. True is set by default or by Initial start button from the start page. Set to false after history data is loaded
         if ((DB::table('settings')->where('id', 1)->value('initial_start')) || $param == 1){
 
-            echo "f: " . DB::table('settings')->where('id', 1)->value('request_bars');
+            echo "request bars: " . DB::table('settings')->where('id', 1)->value('request_bars');
 
             DB::table('btc_history')->truncate(); // Drop all records in the table
 

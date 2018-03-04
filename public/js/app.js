@@ -1003,11 +1003,20 @@ Vue.component('example-component', __webpack_require__(40));
             error: function(xx) {},
         });
 
+        // Recalculate price channel
+        $.ajax({
+            url : "pricechannelcalc",// 1 means that the btc_history table will be truncated and fresh historical data will be requeseted, price channel calculated
+            type : "get",
+            async: false, // //async: false. Synchronus request. All other equests will wait until this one is done
+            success : function() { console.log('ajax: price channel recalculated ok'); },
+            error: function(xx) {console.log('ajax: price channel recalculated failed');},
+        });
+
         // Then when reading and storing historical data is over it is readed from the DB and loaded to the chart
         var request = $.get('loaddata'); // Request initiate. Controller call. AJAX request.
 
 
-        // Initial start
+        // Initial start button click
         $('#chart_redraw').click(function () {
             //chart.redraw();
             console.log("chart redtaw button clicked");
@@ -1163,7 +1172,7 @@ var app = new Vue({
                 var request2 = $.get('loaddata');
 
                 request2.done(function(response) {
-                    console.log("loading data request worked ok");
+                    console.log("vue: loading data request worked ok");
                     //chart.series[0].setData(response[0],true); // true - redraw the series. Candles
                     chart.series[1].setData(response[1],true);// Pricechannel high
                     chart.series[2].setData(response[2],true);// Price channel low

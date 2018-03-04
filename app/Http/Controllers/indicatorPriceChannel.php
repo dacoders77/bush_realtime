@@ -28,7 +28,7 @@ class indicatorPriceChannel extends Controller
 
     public function index() {
 
-        $priceChannelPeriod = 3;
+        $priceChannelPeriod = DB::table('settings')->where('id', 1)->value('price_channel_period');
         $elementIndex = 0;
         $priceChannelHighValue = 0;
         $priceChannelLowValue = 999999;
@@ -50,8 +50,6 @@ class indicatorPriceChannel extends Controller
         // in this case: desc. [0] element is the last record in DB. and it's id - quantity of records
 
 
-
-
         // echo "dd: " . $allDbRows[1]->date; works good!
 
         // Calculate price channel max, min
@@ -60,7 +58,6 @@ class indicatorPriceChannel extends Controller
 
             //echo $elementIndex . " " . gmdate("Y-m-d G:i:s", ($z[0] / 1000));
             //echo "<br>";
-
 
                       //  'time_stamp' => $z[0],
                       //  'open' => $z[1],

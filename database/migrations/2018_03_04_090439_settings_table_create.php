@@ -18,12 +18,14 @@ class SettingsTableCreate extends Migration
             $table->boolean('initial_start');
             $table->integer('time_frame');
             $table->integer('request_bars');
+            $table->integer('price_channel_period');
         });
 
         DB::table('settings')->insert(array(
             'initial_start' => 1,
             'time_frame' => 5,
             'request_bars' => 30,
+            'price_channel_period' => 3
         ));
     }
 
