@@ -991,6 +991,8 @@ Vue.component('example-component', __webpack_require__(40));
 
 
 // **********************************************
+        var chart; // Highcharts instance
+
         // This ajax request my by deprecated https://stackoverflow.com/questions/24639335/javascript-console-log-causes-error-synchronous-xmlhttprequest-on-the-main-thr
         $.ajax({
             url : "history",
@@ -1000,36 +1002,9 @@ Vue.component('example-component', __webpack_require__(40));
             error: function(xx) {},
         });
 
-
-
-
-        var chart; // Highcharts instance
         var request = $.get('loaddata'); // Request initiate. Controller call. AJAX request.
 
-        // Button handlers
-        $('#update').click(function () {
-            //chart.series[0].data[3].update(Math.floor(Math.random() * 10));
-            //console.log('hello world: ' + (Math.floor(Math.random() * 10)));
-
-            var last = chart.series[0].data[chart.series[0].data.length - 1];
-            last.update({
-                //'open': 1000,
-                //'high': 11500,
-                //'low': 8500,
-                'close': 9500 + (Math.floor(Math.random() * 800))
-            }, true);
-
-        });
-
-        $('#load_history').click(function () {
-
-            console.log("dddd");
-        });
-
         request.done(function(response) { // Ajax request if success
-
-            //console.log(response[0][0]);
-
 
             // Create chart. no animation: http://jsfiddle.net/qk44erj6/
 
@@ -1071,7 +1046,32 @@ Vue.component('example-component', __webpack_require__(40));
                     dataGrouping: {
                         enabled: false
                     }
-                }]
+                },
+                    {
+                        name: 'Price channel high',
+                        visible: true,
+                        enableMouseTracking: true,
+                        color: 'red',
+                        lineWidth: 1,
+                        data: response[1],
+                        dataGrouping: {
+                            enabled: false
+                        }
+
+                    },
+                    {
+                        name: 'Price channel low',
+                        visible: true,
+                        enableMouseTracking: true,
+                        color: 'red',
+                        lineWidth: 1,
+                        data: response[2],
+                        dataGrouping: {
+                            enabled: false
+                        }
+
+                    }
+                ]
             }); // chart
 
 
@@ -1114,13 +1114,28 @@ var app = new Vue({
             //document.write('btcusd2: ' + e.update["tradeId"] + '<br>'); // e.update. update is the variable which is defined in event trigger
 
 
-
-
-
-
         });
     }
 });
+
+        // Button handlers
+        $('#update').click(function () {
+            //chart.series[0].data[3].update(Math.floor(Math.random() * 10));
+            //console.log('hello world: ' + (Math.floor(Math.random() * 10)));
+
+            var last = chart.series[0].data[chart.series[0].data.length - 1];
+            last.update({
+                //'open': 1000,
+                //'high': 11500,
+                //'low': 8500,
+                'close': 9500 + (Math.floor(Math.random() * 800))
+            }, true);
+
+        });
+
+        $('#load_history').click(function () {
+            console.log("dddd");
+        });
 
 
 

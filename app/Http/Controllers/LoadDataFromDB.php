@@ -15,10 +15,29 @@ class LoadDataFromDB extends Controller
 
         foreach ($allDbValuse as $rowValue) { // Go through the records read from DB
 
-            $data[] = [$rowValue->time_stamp, $rowValue->open, $rowValue->high, $rowValue->low, $rowValue->close];
+            $candles[] = [
+                $rowValue->time_stamp,
+                $rowValue->open,
+                $rowValue->high,
+                $rowValue->low,
+                $rowValue->close,
+            ];
+
+            //$rowValue->price_channel_high_value,
+            //$rowValue->price_channel_low_value
+
+            $priceChannelHighValue[] = [
+                $rowValue->time_stamp,
+                $rowValue->price_channel_high_value
+            ];
+
+            $priceChannelLowValue[] = [
+                $rowValue->time_stamp,
+                $rowValue->price_channel_low_value
+            ];
         }
 
-        $seriesData = [$data];
+        $seriesData = [$candles, $priceChannelHighValue, $priceChannelLowValue];
         return $seriesData;
 
     }

@@ -1,4 +1,11 @@
-[33mcommit 1d3c12445bc5036a1683115874d995dba6eaec33[m[33m ([m[1;36mHEAD -> [m[1;32mmaster[m[33m)[m
+[33mcommit 326ef1d224e4be5bb2f270863eef87a4dfb198da[m[33m ([m[1;36mHEAD -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m)[m
+Merge: 1d3c124 3694d8b
+Author: Boris Borisov <djslinger77@gmail.com>
+Date:   Sat Mar 3 17:56:03 2018 +0300
+
+    Fixed merge conflicts2
+
+[33mcommit 1d3c12445bc5036a1683115874d995dba6eaec33[m
 Author: Boris Borisov <djslinger77@gmail.com>
 Date:   Sat Mar 3 15:24:04 2018 +0300
 
@@ -21,6 +28,12 @@ Author: Boris Borisov <djslinger77@gmail.com>
 Date:   Mon Feb 26 02:19:21 2018 +0300
 
     Output string fixed
+
+[33mcommit 3694d8b689d8ce9a573bc3cf5c4eb17bc197d2c2[m
+Author: Boris Borisov <djslinger77@gmail.com>
+Date:   Sun Feb 25 17:50:54 2018 -0500
+
+    Merge conflict fixed
 
 [33mcommit d024e20286f423e9663a7a3e53d9023b1d30076d[m
 Author: Boris Borisov <djslinger77@gmail.com>

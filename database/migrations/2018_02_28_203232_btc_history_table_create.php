@@ -22,6 +22,8 @@ class BtcHistoryTableCreate extends Migration
             $table->float('high')->nullable();
             $table->float('low')->nullable();
             $table->float('volume')->nullable();
+            $table->float('price_channel_high_value')->nullable();
+            $table->float('price_channel_low_value')->nullable();
         });
     }
 
