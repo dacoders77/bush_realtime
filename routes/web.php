@@ -30,7 +30,10 @@ Route::get('/fireEvent', function (){ // Event trigger
 // Custom controllers
 
 // Api request to bitfinex
-Route::get('/history', 'HistoryFinex@index')->name('history.get'); // Controller is called using the given name
+Route::get('/history/{param}', 'HistoryFinex@index')->name('history.get'); // Controller is called using the given name and passing {param} to it
 
 // Load data from DB and return it to the chart
-route::get('/loaddata', 'LoadDataFromDB@index')->name('loadJsonFromDB'); // Controller call and passing {z} to it
+route::get('/loaddata', 'LoadDataFromDB@index')->name('loadJsonFromDB');
+
+// Calculate price channel
+route::get('/pricechannelcalc', 'indicatorPriceChannel@index');

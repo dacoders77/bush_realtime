@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Events\eventTrigger; // Linked the event
 use Carbon\Carbon; // date simple lib https://github.com/briannesbitt/Carbon
+use Illuminate\Support\Facades\DB;
 
 class RatchetWebSocket extends Command
 {
@@ -126,16 +127,9 @@ class RatchetWebSocket extends Command
                 }
 
                 // Make a signal when value reaches over added 1 minute
-                echo gmdate("Y-m-d G:i:s", ($nojsonMessage[2][1] / 1000)) . " / " . floor(($nojsonMessage[2][1] / 1000)) . " * " . $this->tt . "\n";
+                echo gmdate("Y-m-d G:i:s", ($nojsonMessage[2][1] / 1000)) . " / " . floor(($nojsonMessage[2][1] / 1000)) . " * " . $this->tt . " price: " . $nojsonMessage[2][3] . "\n";
 
-                if (floor(($nojsonMessage[2][1] / 1000)) >= $this->tt){
-                    echo "*************\n\n";
-                    $messageArray['flag'] = true; // Added true flag which will inform JS that new bar is issued
-                    $this->dateCompeareFlag = true;
-                    // Rest high and low of the bar
-                }
-
-                // Calculate high and low of the bar
+                // Calculate high and low of the bar then pass it to the chart in $messageArray
                 if ($nojsonMessage[2][3] > $this->barHigh) // High
                 {
                     $this->barHigh = $nojsonMessage[2][3];
@@ -146,9 +140,63 @@ class RatchetWebSocket extends Command
                     $this->barLow = $nojsonMessage[2][3];
                 }
 
+                // RATCHET ERROR GOES HERE, WHILE INITIAL START FROM GIU. trying to property of non-object
+                // Update high, low and close of the current bar in DB. Update the record on each trade. Then the new bar will be issued - we will have actual values updated in the DB
+                DB::table('btc_history')
+                    ->where('id', DB::table('btc_history')->orderBy('time_stamp', 'desc')->first()->id) // id of the last record. desc - descent order
+                    ->update([
+                        'close' => $nojsonMessage[2][3],
+                        'high' => $this->barHigh,
+                        'low' => $this->barLow,
+                    ]);
+
+                // Trades watch
+                $x = (DB::table('btc_history')->orderBy('time_stamp', 'desc')->get())[0]->id; // Quantity of all records in DB
+
+                $price_channel_high_value =
+                    DB::table('btc_history')
+                        ->where('id', ($x - 1)) // Penultimate record. One before last
+                        ->value('price_channel_high_value');
+
+                $price_channel_low_value =
+                    DB::table('btc_history')
+                        ->where('id', ($x - 1)) // Penultimate record. One before last
+                        ->value('price_channel_low_value');
+
+                if ($nojsonMessage[2][3] > $price_channel_high_value){ // price > price channel
+                    echo "####### HIGH TRADE!\n";
+                }
+
+                if ($nojsonMessage[2][3] < $price_channel_low_value) { // price < price channel
+                    echo "####### LOW TRADE!\n";
+                }
 
 
-                // Parse and add values to associative array
+
+
+                // New bar is issued
+                if (floor(($nojsonMessage[2][1] / 1000)) >= $this->tt){
+                    echo "************************************** new bar issued\n\n";
+                    $messageArray['flag'] = true; // Added true flag which will inform JS that new bar is issued
+                    $this->dateCompeareFlag = true;
+
+                    // Add new bar to the DB
+                    DB::table('btc_history')->insert(array( // Record to DB
+                        'date' => gmdate("Y-m-d G:i:s", ($nojsonMessage[2][1] / 1000)), // Date in regular format. Converted from unix timestamp
+                        'time_stamp' => $nojsonMessage[2][1],
+                        'open' => $nojsonMessage[2][3],
+                        'close' => $nojsonMessage[2][3],
+                        'high' => $nojsonMessage[2][3],
+                        'low' => $nojsonMessage[2][3],
+                        'volume' => $nojsonMessage[2][2],
+                    ));
+
+                    // Recalculate price channel. Controller call
+                    app('App\Http\Controllers\indicatorPriceChannel')->index();
+
+                }
+
+                // Add calculated values to associative array
                 $messageArray['tradeId'] = $nojsonMessage[2][0];
                 $messageArray['tradeDate'] = $nojsonMessage[2][1];
                 $messageArray['tradeVolume'] = $nojsonMessage[2][2];

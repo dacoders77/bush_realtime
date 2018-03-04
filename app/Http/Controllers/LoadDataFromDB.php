@@ -11,9 +11,9 @@ class LoadDataFromDB extends Controller
 {
     public function index(){
 
-        $allDbValuse = DB::table('btc_history')->get(); // Read the whole table from BD to $allDbValuse
+        $allDbValues = DB::table('btc_history')->get(); // Read the whole table from BD to $allDbValues
 
-        foreach ($allDbValuse as $rowValue) { // Go through the records read from DB
+        foreach ($allDbValues as $rowValue) { // Go through the records read from DB
 
             $candles[] = [
                 $rowValue->time_stamp,

@@ -14,14 +14,21 @@
 </head>
 <body>
 
-<button id="update">Update chart</button>
-<button id="load_history">load_history</button>
 
-<div id="app">
+<button id="clear_db">Clear DB</button>
+<button id="start_bot">Start bot</button>
+<button id="stop_bot">Stop bot</button>
+<button id="close_all_positions">Update chart data</button>
+<button id="chart_redraw">Initial start</button>
+<br>
+Bot status: Running
+<br><br>
+
+<div id="app"> <!-- VueJS container -->
     <p>This is the event listener page. eventListener.blade.php</p>
 </div>
 
-<div id="container" style="width: 100%; height: 500px; border: 1px solid red; float: left; text-align: center; display: table-cell; vertical-align: middle">
+<div id="container" style="width: 100%; height: 500px; border: 1px solid transparent; float: left; text-align: center; display: table-cell; vertical-align: middle">
 
 </div>
 

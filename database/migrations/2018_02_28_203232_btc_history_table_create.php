@@ -13,6 +13,7 @@ class BtcHistoryTableCreate extends Migration
      */
     public function up()
     {
+
         Schema::create('btc_history', function (Blueprint $table) {
             $table->increments('id');
             $table->dateTime('date')->nullable(); // Use nullable if this field can be blank
@@ -24,6 +25,13 @@ class BtcHistoryTableCreate extends Migration
             $table->float('volume')->nullable();
             $table->float('price_channel_high_value')->nullable();
             $table->float('price_channel_low_value')->nullable();
+            $table->dateTime('trade_date')->nullable();
+            $table->float('trade_prie')->nullable();
+            $table->string('trade_direction')->nullable();
+            $table->float('trade_volume')->nullable();
+            $table->float('trade_profit')->nullable();
+            $table->float('accumulated_profit')->nullable();
+
         });
     }
 

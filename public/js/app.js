@@ -994,19 +994,79 @@ Vue.component('example-component', __webpack_require__(40));
         var chart; // Highcharts instance
 
         // This ajax request my by deprecated https://stackoverflow.com/questions/24639335/javascript-console-log-causes-error-synchronous-xmlhttprequest-on-the-main-thr
+        // This controller request history data from bitfinex and stores in in the DB
         $.ajax({
-            url : "history",
+            url : "history/no", // no means initial start or other loads. This action determines on the inital_start flag in the DB
             type : "get",
             async: false, // //async: false. Synchronus request. All other equests will wait until this one is done
             success : function() {},
             error: function(xx) {},
         });
 
+        // Then when reading and storing historical data is over it is readed from the DB and loaded to the chart
         var request = $.get('loaddata'); // Request initiate. Controller call. AJAX request.
+
+
+        // Initial start
+        $('#chart_redraw').click(function () {
+            //chart.redraw();
+            console.log("chart redtaw button clicked");
+
+            // Request history data
+            $.ajax({
+                url : "history/1",// 1 means that the btc_history table will be truncated and fresh historical data will be requeseted, price channel calculated
+                type : "get",
+                async: false, // //async: false. Synchronus request. All other equests will wait until this one is done
+                success : function() {console.log('ajax: history loaded ok');},
+                error: function(xx) {console.log('ajax: history load failed');},
+            });
+
+            // Recalculate price channel
+            $.ajax({
+                url : "pricechannelcalc",// 1 means that the btc_history table will be truncated and fresh historical data will be requeseted, price channel calculated
+                type : "get",
+                async: false, // //async: false. Synchronus request. All other equests will wait until this one is done
+                success : function() { console.log('ajax: price channel recalculated ok'); },
+                error: function(xx) {console.log('ajax: price channel recalculated failed');},
+            });
+
+            // After fresh historical data was received it is read from DB and outputed to the chart
+            var request2 = $.get('loaddata');
+
+            request2.done(function(response) {
+                console.log("data loaded from DB ok");
+                chart.series[0].setData(response[0],true); // true - redraw the series. Candles
+                chart.series[1].setData(response[1],true);// Pricechannel high
+                chart.series[2].setData(response[2],true);// Price channel low
+            });
+        });
+
+
+
+        // Update chart data
+        $('#close_all_positions').click(function () {
+            //chart.redraw();
+            console.log("update chart data button clicked");
+
+            // After fresh historical data was received it is read from DB and outputed to the chart
+            var request2 = $.get('loaddata');
+
+            request2.done(function(response) {
+                console.log("data loaded from DB ok v2");
+                //chart.series[0].setData(response[0],true); // true - redraw the series. Candles
+                chart.series[1].setData(response[1],true);// Pricechannel high
+                chart.series[2].setData(response[2],true);// Price channel low
+            });
+        });
+
+
+
+
 
         request.done(function(response) { // Ajax request if success
 
             // Create chart. no animation: http://jsfiddle.net/qk44erj6/
+            console.log("chart created");
 
             chart = new Highcharts.stockChart('container', {
 
@@ -1075,8 +1135,6 @@ Vue.component('example-component', __webpack_require__(40));
             }); // chart
 
 
-
-
         });
 
 
@@ -1087,8 +1145,6 @@ var app = new Vue({
     created: function created() {
         Echo.channel('channelDemoEvent').listen('eventTrigger', function (e) {
 
-
-
             var last = chart.series[0].data[chart.series[0].data.length - 1];
             last.update({
                 //'open': 1000,
@@ -1097,11 +1153,22 @@ var app = new Vue({
                 'close': e.update["tradePrice"]
             }, true);
 
-
-            // Listen for 1min bar expiration. When this event is rised - close the barr and and a new one
+            // New bar is issued
             if (e.update["flag"]) {
                 console.log('new bar is added');
+                // Add bar to the chart
                 chart.series[0].addPoint([e.update["tradeDate"],e.update["tradePrice"],e.update["tradePrice"],e.update["tradePrice"],e.update["tradePrice"]],true, false); // Works good
+
+                // Update price channel
+                var request2 = $.get('loaddata');
+
+                request2.done(function(response) {
+                    console.log("loading data request worked ok");
+                    //chart.series[0].setData(response[0],true); // true - redraw the series. Candles
+                    chart.series[1].setData(response[1],true);// Pricechannel high
+                    chart.series[2].setData(response[2],true);// Price channel low
+                });
+
             }
 
 
@@ -1136,6 +1203,8 @@ var app = new Vue({
         $('#load_history').click(function () {
             console.log("dddd");
         });
+
+
 
 
 
