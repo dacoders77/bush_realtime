@@ -26,7 +26,7 @@ class BtcHistoryTableCreate extends Migration
             $table->float('price_channel_high_value')->nullable();
             $table->float('price_channel_low_value')->nullable();
             $table->dateTime('trade_date')->nullable();
-            $table->float('trade_prie')->nullable();
+            $table->float('trade_price')->nullable();
             $table->string('trade_direction')->nullable();
             $table->float('trade_volume')->nullable();
             $table->float('trade_profit')->nullable();

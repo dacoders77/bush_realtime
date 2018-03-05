@@ -1047,6 +1047,8 @@ Vue.component('example-component', __webpack_require__(40));
                 chart.series[0].setData(response[0],true); // true - redraw the series. Candles
                 chart.series[1].setData(response[1],true);// Pricechannel high
                 chart.series[2].setData(response[2],true);// Price channel low
+                chart.series[3].setData(response[3],true);// Long trade markers
+                chart.series[4].setData(response[4],true);// Short trade markers
             });
         });
 
@@ -1062,9 +1064,11 @@ Vue.component('example-component', __webpack_require__(40));
 
             request2.done(function(response) {
                 console.log("data loaded from DB ok v2");
-                //chart.series[0].setData(response[0],true); // true - redraw the series. Candles
+                chart.series[0].setData(response[0],true); // true - redraw the series. Candles
                 chart.series[1].setData(response[1],true);// Pricechannel high
                 chart.series[2].setData(response[2],true);// Price channel low
+                chart.series[3].setData(response[3],true);// Long trade markers
+                chart.series[4].setData(response[4],true);// Short trade markers
             });
         });
 
@@ -1139,7 +1143,47 @@ Vue.component('example-component', __webpack_require__(40));
                             enabled: false
                         }
 
+                    },
+                    {
+                        name: 'Long markers',
+                        visible: true,
+                        enableMouseTracking: true,
+                        type: 'scatter',
+                        color: 'purple',
+                        //lineWidth: 3,
+                        data: response[3],
+                        dataGrouping: {
+                            enabled: false
+                        },
+                        marker: {
+                            fillColor: 'lime',
+                            lineColor: 'green',
+                            lineWidth: 1,
+                            radius: 6,
+                            symbol: 'triangle'
+                        },
+                    },
+                    {
+                        name: 'Short markers',
+                        visible: true,
+                        enableMouseTracking: true,
+                        type: 'scatter',
+                        //yAxis: 1, // To which of two y axis this series should be linked
+                        color: 'purple',
+                        //lineWidth: 3,
+                        data: response[4],
+                        dataGrouping: {
+                            enabled: false
+                        },
+                        marker: {
+                            fillColor: 'red',
+                            lineColor: 'red',
+                            lineWidth: 1,
+                            radius: 6,
+                            symbol: 'triangle-down'
+                        },
                     }
+
                 ]
             }); // chart
 
@@ -1154,6 +1198,7 @@ var app = new Vue({
     created: function created() {
         Echo.channel('channelDemoEvent').listen('eventTrigger', function (e) {
 
+            // Update last bar on exach even sent from RatchetWebSocket.php
             var last = chart.series[0].data[chart.series[0].data.length - 1];
             last.update({
                 //'open': 1000,
@@ -1162,8 +1207,8 @@ var app = new Vue({
                 'close': e.update["tradePrice"]
             }, true);
 
-            // New bar is issued
-            if (e.update["flag"]) {
+            // New bar is issued. Flag sent from RatchetWebSocket.php
+            if (e.update["flag"]) { // e.update["flag"] = true
                 console.log('new bar is added');
                 // Add bar to the chart
                 chart.series[0].addPoint([e.update["tradeDate"],e.update["tradePrice"],e.update["tradePrice"],e.update["tradePrice"],e.update["tradePrice"]],true, false); // Works good
@@ -1173,16 +1218,30 @@ var app = new Vue({
 
                 request2.done(function(response) {
                     console.log("vue: loading data request worked ok");
-                    //chart.series[0].setData(response[0],true); // true - redraw the series. Candles
+                    chart.series[0].setData(response[0],true); // true - redraw the series. Candles
                     chart.series[1].setData(response[1],true);// Pricechannel high
                     chart.series[2].setData(response[2],true);// Price channel low
+                    chart.series[3].setData(response[3],true);// Long trade markers
+                    chart.series[4].setData(response[4],true);// Short trade markers
                 });
 
             }
 
+            // buy flag
+            if (e.update["flag"] == "buy") {
+                console.log('buy');
+                chart.series[3].addPoint([e.update["tradeDate"], e.update["tradePrice"]],true, false); // Works good
+            }
+
+            // buy flag
+            if (e.update["flag"] == "sell") {
+                console.log('buy');
+                chart.series[4].addPoint([e.update["tradeDate"], e.update["tradePrice"]],true, false);
+            }
+
 
             //alert('The event has been triggered! Here is the alert box for proofe!');
-            //console.log('zzzzz');
+            //console.log(e.update);
 
             //var d = new Date();
             //document.getElementById("demo").innerHTML = d;

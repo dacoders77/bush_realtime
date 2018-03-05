@@ -37,3 +37,6 @@ route::get('/loaddata', 'LoadDataFromDB@index')->name('loadJsonFromDB');
 
 // Calculate price channel
 route::get('/pricechannelcalc', 'indicatorPriceChannel@index');
+
+// Place order
+route::get('/placeorder', 'PlaceOrder@index');

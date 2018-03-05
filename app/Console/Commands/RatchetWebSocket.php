@@ -92,13 +92,20 @@ class RatchetWebSocket extends Command
     // SNAPSHOT (the initial message) https://docs.bitfinex.com/docs/ws-general
 
     public $dateCompeareFlag = true;
-    public $tt;
+    public $tt; // Time
 
-    public $barHigh = 0;
+    public $barHigh = 0; // For high value calculation
     public $barLow = 9999999;
+
+    public $trade_flag = "all";
+    public $add_bar_long = true; // Count closed position on the same be the signal occurred. The problem is when the position is closed the close price of this bar goes to the next position
+    public $add_bar_short = true;
+    public $position; // Current position
+
 
     public function out($message)
     {
+
 
         $jsonMessage = json_decode($message->getPayload(), true); // Methods http://socketo.me/api/class-Ratchet.RFC6455.Messaging.MessageInterface.html
         //print_r($jsonMessage);
@@ -106,7 +113,6 @@ class RatchetWebSocket extends Command
         //echo $message->__toString() . "\n"; // Decode each message
 
         if (array_key_exists('chanId',$jsonMessage)){
-            echo "";
             $chanId = $jsonMessage['chanId']; // Parsed channel ID then we are gonna listen exactley to this channel number. It changes each time you make a new connection
         }
 
@@ -127,7 +133,7 @@ class RatchetWebSocket extends Command
                 }
 
                 // Make a signal when value reaches over added 1 minute
-                echo gmdate("Y-m-d G:i:s", ($nojsonMessage[2][1] / 1000)) . " / " . floor(($nojsonMessage[2][1] / 1000)) . " * " . $this->tt . " price: " . $nojsonMessage[2][3] . "\n";
+                echo gmdate("Y-m-d G:i:s", ($nojsonMessage[2][1] / 1000)) . " / " . floor(($nojsonMessage[2][1] / 1000)) . " * " . $this->tt . " price: " . $nojsonMessage[2][3] . " vol: " . $nojsonMessage[2][2] . " pos: " . $this->position . "\n";
 
                 // Calculate high and low of the bar then pass it to the chart in $messageArray
                 if ($nojsonMessage[2][3] > $this->barHigh) // High
@@ -151,6 +157,7 @@ class RatchetWebSocket extends Command
                     ]);
 
                 // Trades watch
+
                 $x = (DB::table('btc_history')->orderBy('time_stamp', 'desc')->get())[0]->id; // Quantity of all records in DB
 
                 $price_channel_high_value =
@@ -163,12 +170,49 @@ class RatchetWebSocket extends Command
                         ->where('id', ($x - 1)) // Penultimate record. One before last
                         ->value('price_channel_low_value');
 
-                if ($nojsonMessage[2][3] > $price_channel_high_value){ // price > price channel
+                if (($nojsonMessage[2][3] > $price_channel_high_value) && ($this->trade_flag == "all" || $this->trade_flag == "long")){ // price > price channel
                     echo "####### HIGH TRADE!\n";
+
+                    //$long_trades[] = [$all_table_values[$element_index]->time_stamp, $all_table_values[$element_index]->close]; // Added long marker
+
+                    $this->trade_flag = "short";
+                    $this->position = "long";
+                    $this->add_bar_long = true;
+
+                    // Add trade info to the last(current) bar(record)
+                    DB::table('btc_history')
+                        ->where('id', $x)
+                        ->update([
+                            'trade_date' => gmdate("Y-m-d G:i:s", ($nojsonMessage[2][1] / 1000)),
+                            'trade_price' => $nojsonMessage[2][3],
+                            'trade_direction' => "buy",
+                            'trade_volume' => 1
+                        ]);
+
+                    $messageArray['flag'] = "buy"; // Send flag to VueJS app.js
+
                 }
 
-                if ($nojsonMessage[2][3] < $price_channel_low_value) { // price < price channel
+                if (($nojsonMessage[2][3] < $price_channel_low_value) && ($this->trade_flag == "all"  || $this->trade_flag == "short")) { // price < price channel
                     echo "####### LOW TRADE!\n";
+
+                    //$short_trades[] = [$all_table_values[$element_index]->time_stamp, $all_table_values[$element_index]->close]; // Added short marker
+
+                    $this->trade_flag = "long";
+                    $this->position = "short";
+                    $this->add_bar_short = true;
+
+                    // Add trade info to the last(current) bar(record)
+                    DB::table('btc_history')
+                        ->where('id', $x)
+                        ->update([
+                            'trade_date' => gmdate("Y-m-d G:i:s", ($nojsonMessage[2][1] / 1000)),
+                            'trade_price' => $nojsonMessage[2][3],
+                            'trade_direction' => "sell",
+                            'trade_volume' => 1
+                        ]);
+
+                    $messageArray['flag'] = "sell"; // Send flag to VueJS app.js
                 }
 
 
@@ -191,7 +235,7 @@ class RatchetWebSocket extends Command
                         'volume' => $nojsonMessage[2][2],
                     ));
 
-                    // Recalculate price channel. Controller call
+                    // Recalculate price channel. Controller call as a method
                     app('App\Http\Controllers\indicatorPriceChannel')->index();
 
                 }
