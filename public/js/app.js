@@ -1221,8 +1221,6 @@ var app = new Vue({
                     chart.series[0].setData(response[0],true); // true - redraw the series. Candles
                     chart.series[1].setData(response[1],true);// Pricechannel high
                     chart.series[2].setData(response[2],true);// Price channel low
-                    chart.series[3].setData(response[3],true);// Long trade markers
-                    chart.series[4].setData(response[4],true);// Short trade markers
                 });
 
             }
