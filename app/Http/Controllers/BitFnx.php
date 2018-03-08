@@ -22,7 +22,10 @@ class BitFnx
 
 
     // Account info
-    public function get_account_infos($summary) {
+    public function get_account_infos($summary, $volume, $direction) {
+
+        //echo "<br>**************** " . $volume . "<br>";
+        //echo "<br>**************** " . $direction . "<br>";
 
         $request = $this->endpoint($summary); // This method call can take two parameters as shown below
         // No params taken. Only first value is sent
@@ -30,11 +33,11 @@ class BitFnx
         $data = array(
             'request' => $request, // Params MUST go here
 
-            'symbol'=> 'BTCUSD', // ETHUSD ETCUSD
-            'amount' => '0.004', // 0.02
+            'symbol'=> 'ETHUSD', // ETHUSD ETCUSD
+            'amount' => $volume, // 0.02
             'price' => '1000',
             'exchange' => 'bitfinex',
-            'side' => 'sell',
+            'side' => $direction,
             'type' => 'market' // exchange market - exchanger order. market - margin order. If you need to open a short position - use 'market'. It is impossible to go short with 'exchange order'
                                // Funds must be located at Margin wallet if you go short and long.
                                // New order: https://bitfinex.readme.io/v1/reference#rest-auth-new-order
@@ -70,9 +73,7 @@ class BitFnx
      */
     private function prepare_header($data)
     {
-        $data['nonce'] = (string) number_format(round(microtime(true) * 100000), 0, '.', '');
-
-
+        $data['nonce'] = (string) number_format(round(microtime(true) * 1000000), 0, '.', '');
 
         $payload = base64_encode(json_encode($data));
         $signature = hash_hmac('sha384', $payload, $this->api_secret);
@@ -103,11 +104,11 @@ class BitFnx
 
         $headers = $this->prepare_header($data);
 
-        echo "<pre>";
+        //echo "<pre>";
         //print_r($headers);
         //var_dump(curl_getinfo($ch));
         //print_r (curl_exec($ch));
-        echo "</pre>";
+        //echo "</pre>";
 
         //var_dump($headers); // Not null!
         return $headers;

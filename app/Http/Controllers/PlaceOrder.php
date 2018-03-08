@@ -9,7 +9,9 @@ use GuzzleHttp\Client;
 class PlaceOrder extends Controller
 {
 
-    public function index() {
+    public function index($volume, $direction) {
+
+
 
         // Second creation
         $bit_fnx = new BitFnx(); // Created new instance of class where all headers brought together
@@ -24,18 +26,21 @@ class PlaceOrder extends Controller
 
         // Create new instance of guzzle and pass $data array as the set of headers
         // 3 vvalues are sent: X-BFX-APIKEY, X-BFX-PAYLOAD, X-BFX-SIGNATURE
-        $z = $bit_fnx->get_account_infos($restAuthEndpoint); // Function get_account_infos() call and passing $restAuthEndpoint to it as a parameter
-        print_r ($z);
-
+        $z = $bit_fnx->get_account_infos($restAuthEndpoint, $volume, $direction); // Function get_account_infos() call and passing $restAuthEndpoint to it as a parameter
+        //print_r ($z);
 
         //echo "****************payload: " . $bit_fnx->pay . "<br>";
         //echo "****************signature: " . $bit_fnx->sig . "<br>";
+        //echo "<br>place order. volume: " . $volume;
 
 
         $api_connection = new Client([
             'base_uri' => 'https://api.bitfinex.com/v1/',
             'timeout' => 5 // If make this value small - fatal error occurs
         ]);
+
+
+
 
         $response = $api_connection->request('POST', $restAuthEndpoint, [
             'headers' => [
@@ -45,21 +50,22 @@ class PlaceOrder extends Controller
             ]
         ]); //https://api.bitfinex.com/v1/account_infos
 
+
         $body = $response->getBody(); // Get the body out of the request
 
-        echo "<pre>";
+        //echo "<pre>"; // Response output
         //print_r($response);
         //print_r (get_class_methods($response));
         //echo "body: " . $body;
-        print_r(json_decode($body));
+
+        //echo "<pre>"; // Body output
+        //print_r(json_decode($body));
 
 
-
-
+        return $body;
+        //echo $direction;
 
     } // public
-
-
 
 
 }

@@ -149,6 +149,10 @@ class RatchetWebSocket extends Command
                 // RATCHET ERROR GOES HERE, WHILE INITIAL START FROM GIU. trying to property of non-object
                 // Update high, low and close of the current bar in DB. Update the record on each trade.
                 // Then the new bar will be issued - we will have actual values updated in the DB
+
+                // ERROR: Trying to property of non object
+                // Occures when ratchet:start is run for the first time and the history table is empty - no record to update
+                // Start GIU first and then rathcet:start
                 DB::table('btc_history')
                     ->where('id', DB::table('btc_history')->orderBy('time_stamp', 'desc')->first()->id) // id of the last record. desc - descent order
                     ->update([
@@ -182,7 +186,7 @@ class RatchetWebSocket extends Command
                             ->where('id', ($x - 1)) // Penultimate record. One before last
                             ->value('price_channel_low_value');
 
-                    // If > high price channel
+                    // If > high price channel. BUY
                     if (($nojsonMessage[2][3] > $price_channel_high_value) && ($this->trade_flag == "all" || $this->trade_flag == "long")){ // price > price channel
                         echo "####### HIGH TRADE!\n";
 
@@ -204,7 +208,7 @@ class RatchetWebSocket extends Command
 
                     }
 
-                    // If < low price channel
+                    // If < low price channel. SELL
                     if (($nojsonMessage[2][3] < $price_channel_low_value) && ($this->trade_flag == "all"  || $this->trade_flag == "short")) { // price < price channel
                         echo "####### LOW TRADE!\n";
 

@@ -1272,6 +1272,30 @@ var app = new Vue({
 
 
 
+        // Buy Button
+        $('#buy_button').click(function () {
+            console.log("buy button clicked");
+
+            var request = $.get('placeorder/0.025/buy');
+            request.done(function(response) {
+                console.log('buy order executed. response: ' + response);
+
+            });
+        });
+
+        // Sell Button
+        $('#sell_button').click(function () {
+            console.log("sell button clicked");
+
+            var request = $.get('placeorder/0.025/sell');
+            request.done(function(response) {
+                console.log('sell order executed. response: ' + response);
+
+            });
+        });
+
+
+
 
 
 
