@@ -16,8 +16,8 @@ class BitFnx
 
     const API_URL = 'https://api.bitfinex.com'; // While sniffering use http instead of https. It lets you to see unencoded traffic otherwise you see unreadable set of characters
 
-    public $api_key = "CNW6skxiMWZpjwlUkKOaOZybFeW5TGZ5CG6dJP6yaDX";
-    private $api_secret = "2pFOcoFYsio6t7VfPzW3aDRPGMUkX0TUFPkO0db2ZFZ";
+    public $api_key = "YcGqIAMGDgTVESLBDTTGQ32Q9DTsL0u5oY33GegN2wS";
+    private $api_secret = "H4G2JdRGvsJ0JOKb1GcnDvoC27oVJvN5OU4hz4rlQMl";
     private $api_version = "v1";
 
 
@@ -28,14 +28,16 @@ class BitFnx
         // No params taken. Only first value is sent
 
         $data = array(
-            'request' => $request, // Looks like other params  MUST go here
+            'request' => $request, // Params MUST go here
 
-            'symbol'=> 'ETHUSD',
-            'amount' => '0.02',
+            'symbol'=> 'BTCUSD', // ETHUSD ETCUSD
+            'amount' => '0.004', // 0.02
             'price' => '1000',
             'exchange' => 'bitfinex',
-            'side' => 'buy',
-            'type' => 'exchange market'
+            'side' => 'sell',
+            'type' => 'market' // exchange market - exchanger order. market - margin order. If you need to open a short position - use 'market'. It is impossible to go short with 'exchange order'
+                               // Funds must be located at Margin wallet if you go short and long.
+                               // New order: https://bitfinex.readme.io/v1/reference#rest-auth-new-order
         );
 
         return $this->send_auth_request($data);
@@ -69,6 +71,8 @@ class BitFnx
     private function prepare_header($data)
     {
         $data['nonce'] = (string) number_format(round(microtime(true) * 100000), 0, '.', '');
+
+
 
         $payload = base64_encode(json_encode($data));
         $signature = hash_hmac('sha384', $payload, $this->api_secret);

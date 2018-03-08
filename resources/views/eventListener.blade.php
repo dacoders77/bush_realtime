@@ -15,11 +15,13 @@
 <body>
 
 
-<button id="clear_db">Clear DB</button>
 <button id="start_bot">Start bot</button>
 <button id="stop_bot">Stop bot</button>
 <button id="close_all_positions">Update chart data</button>
 <button id="chart_redraw">Initial start</button>
+<br>
+<button id="buy">Buy</button>
+<button id="sell">Sell</button>
 <br>
 Bot status: Running
 <br><br>

@@ -72,7 +72,7 @@ class RatchetWebSocket extends Command
                     //'event' => 'ping', // 'event' => 'ping'
                     'event' => 'subscribe',
                     'channel' => 'trades',
-                    'symbol' => 'tBTCUSD'
+                    'symbol' => 'tETHUSD' // tBTCUSD
                 ]);
                 $conn->send($z);
 
