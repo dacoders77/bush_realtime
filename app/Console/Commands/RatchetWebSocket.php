@@ -101,6 +101,8 @@ class RatchetWebSocket extends Command
     public $add_bar_long = true; // Count closed position on the same be the signal occurred. The problem is when the position is closed the close price of this bar goes to the next position
     public $add_bar_short = true;
     public $position; // Current position
+    public $volume = "0.025"; // Asset amount for order opening
+    public $firstEverTradeFlag = true; // True - when the bot is started and the first trade is executed. Then flag turns to false and trade volume is doubled for closing current position and opening the opposite
 
 
     public function out($message)
@@ -186,9 +188,39 @@ class RatchetWebSocket extends Command
                             ->where('id', ($x - 1)) // Penultimate record. One before last
                             ->value('price_channel_low_value');
 
+                    $allow_trading =
+                        DB::table('settings')
+                            ->where('id', 1)
+                            ->value('allow_trading');
+
                     // If > high price channel. BUY
                     if (($nojsonMessage[2][3] > $price_channel_high_value) && ($this->trade_flag == "all" || $this->trade_flag == "long")){ // price > price channel
                         echo "####### HIGH TRADE!\n";
+
+                        // trading allowed?
+                        if ($allow_trading == 1){
+
+                            // Is the the first trade ever?
+                            if ($this->firstEverTradeFlag){
+                                // open order buy vol = vol
+                                echo "---------------------- FIRST EVER TRADE\n";
+                                app('App\Http\Controllers\PlaceOrder')->index($this->volume,"buy");
+                                $this->firstEverTradeFlag = false;
+                            }
+                            else // Not the first trade. Close the current position and open opposite trade. vol = vol * 2
+                            {
+                                // open order buy vol = vol * 2
+                                echo "---------------------- NOT FIRST EVER TRADE. CLOSE + OPEN. VOL*2\n";
+                                app('App\Http\Controllers\PlaceOrder')->index($this->volume,"buy");
+                                app('App\Http\Controllers\PlaceOrder')->index($this->volume,"buy");
+                            }
+                        }
+                        else{ // trading is not allowed
+                            $this->firstEverTradeFlag = true;
+                            echo "---------------------- TRADING NOT ALLOWED\n";
+                        }
+
+
 
                         $this->trade_flag = "short"; // Trade flag. If this flag set to short -> don't enter this if and wait for channel low crossing (IF below)
                         $this->position = "long";
@@ -211,6 +243,29 @@ class RatchetWebSocket extends Command
                     // If < low price channel. SELL
                     if (($nojsonMessage[2][3] < $price_channel_low_value) && ($this->trade_flag == "all"  || $this->trade_flag == "short")) { // price < price channel
                         echo "####### LOW TRADE!\n";
+
+                        // trading allowed?
+                        if ($allow_trading == 1){
+
+                            // Is the the first trade ever?
+                            if ($this->firstEverTradeFlag){
+                                // open order buy vol = vol
+                                echo "---------------------- FIRST EVER TRADE\n";
+                                app('App\Http\Controllers\PlaceOrder')->index($this->volume,"sell");
+                                $this->firstEverTradeFlag = false;
+                            }
+                            else // Not the first trade. Close the current position and open opposite trade. vol = vol * 2
+                            {
+                                // open order buy vol = vol * 2
+                                echo "---------------------- NOT FIRST EVER TRADE. CLOSE + OPEN. VOL*2\n";
+                                app('App\Http\Controllers\PlaceOrder')->index($this->volume,"sell");
+                                app('App\Http\Controllers\PlaceOrder')->index($this->volume,"sell");
+                            }
+                        }
+                        else{ // trading is not allowed
+                            $this->firstEverTradeFlag = true;
+                            echo "---------------------- TRADING NOT ALLOWED\n";
+                        }
 
                         $this->trade_flag = "long";
                         $this->position = "short";

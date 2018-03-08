@@ -27,7 +27,7 @@ class SettingsTableCreate extends Migration
             'time_frame' => 5,
             'request_bars' => 30,
             'price_channel_period' => 1,
-            'allow_trading' => 1
+            'allow_trading' => 0
         ));
     }
 

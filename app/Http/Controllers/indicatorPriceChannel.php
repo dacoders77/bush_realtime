@@ -43,7 +43,7 @@ class indicatorPriceChannel extends Controller
             ]);
         */
 
-
+        echo "IndicatorPriceChannel.php Indicator recalculation started\n";
         $allDbRows = DB::table('btc_history')->orderBy('time_stamp', 'desc')->get(); // desc, asc - order. Read the whole table from BD to $allDbRows
         // desc - from big values to small
         // asc - from small to big
@@ -82,8 +82,8 @@ class indicatorPriceChannel extends Controller
                     //print_r ($allDbRows[$i][3]);
                     //echo "<br>";
 
-                    echo $elementIndex . " " . gmdate("Y-m-d G:i:s", ($allDbRows[$i]->time_stamp / 1000)) . " " . $allDbRows[$i]->high;
-                    echo "<br>";
+                    //echo $elementIndex . " " . gmdate("Y-m-d G:i:s", ($allDbRows[$i]->time_stamp / 1000)) . " " . $allDbRows[$i]->high;
+                    //echo "<br>";
 
 
                     if ($allDbRows[$i]->high > $priceChannelHighValue) // Find max value in interval
@@ -94,8 +94,8 @@ class indicatorPriceChannel extends Controller
 
 
                 }
-                echo "**" . $priceChannelHighValue;
-                echo "_______________________________<br>";
+                //echo "**" . $priceChannelHighValue;
+                //echo "_______________________________<br>";
 
 
                 DB::table('btc_history')
