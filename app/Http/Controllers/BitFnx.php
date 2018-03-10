@@ -16,13 +16,17 @@ class BitFnx
 
     const API_URL = 'https://api.bitfinex.com'; // While sniffering use http instead of https. It lets you to see unencoded traffic otherwise you see unreadable set of characters
 
-    public $api_key = "YcGqIAMGDgTVESLBDTTGQ32Q9DTsL0u5oY33GegN2wS";
-    private $api_secret = "H4G2JdRGvsJ0JOKb1GcnDvoC27oVJvN5OU4hz4rlQMl";
+    public $api_key; // = "YcGqIAMGDgTVESLBDTTGQ32Q9DTsL0u5oY33GegN2wS";
+    private $api_secret; // = "H4G2JdRGvsJ0JOKb1GcnDvoC27oVJvN5OU4hz4rlQMl";
     private $api_version = "v1";
 
 
     // Account info
     public function get_account_infos($summary, $volume, $direction) {
+
+        // Assign key values
+        $this->api_key = $_ENV['BIT_FINEX_PUBLIC_API_KEY']; // Api keys go here
+        $this->api_secret = $_ENV['BIT_FINEX_PRIVATE_API_KEY'];
 
         //echo "<br>**************** " . $volume . "<br>";
         //echo "<br>**************** " . $direction . "<br>";

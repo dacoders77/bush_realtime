@@ -20,6 +20,7 @@ class SettingsTableCreate extends Migration
             $table->integer('request_bars');
             $table->integer('price_channel_period');
             $table->boolean('allow_trading');
+            $table->float('commission_value')->nullable();
         });
 
         DB::table('settings')->insert(array(
@@ -27,7 +28,8 @@ class SettingsTableCreate extends Migration
             'time_frame' => 5,
             'request_bars' => 30,
             'price_channel_period' => 1,
-            'allow_trading' => 0
+            'allow_trading' => 0,
+            'commission_value' => 0.2
         ));
     }
 

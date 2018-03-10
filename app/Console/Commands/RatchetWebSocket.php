@@ -193,6 +193,11 @@ class RatchetWebSocket extends Command
                             ->where('id', 1)
                             ->value('allow_trading');
 
+                    $commisionValue =
+                        DB::table('settings')
+                            ->where('id', 1)
+                            ->value('commission_value');
+
                     // If > high price channel. BUY
                     if (($nojsonMessage[2][3] > $price_channel_high_value) && ($this->trade_flag == "all" || $this->trade_flag == "long")){ // price > price channel
                         echo "####### HIGH TRADE!\n";
@@ -233,12 +238,24 @@ class RatchetWebSocket extends Command
                                 'trade_date' => gmdate("Y-m-d G:i:s", ($nojsonMessage[2][1] / 1000)),
                                 'trade_price' => $nojsonMessage[2][3],
                                 'trade_direction' => "buy",
-                                'trade_volume' => 1
+                                //*****
+                                'trade_volume' => $this->volume,
+                                'trade_commission' => ($nojsonMessage[2][3] * $commisionValue / 100) * $this->volume,
+                                'accumulated_commission' => DB::table('btc_history')->sum('trade_commission') + ($nojsonMessage[2][3] * $commisionValue / 100) * $this->volume,
+
                             ]);
+
+                        echo "nojsonMessage[2][3]" . $nojsonMessage[2][3] . "\n";
+                        echo "commisionValue" . $commisionValue . "\n";
+                        echo "this colume" . $this->volume . "\n";
+                        echo "percent: " . ($nojsonMessage[2][3] * $commisionValue / 100) . "\n";
+                        echo "result: " . ($nojsonMessage[2][3] * $commisionValue / 100) * $this->volume . "\n";
+                        echo "sum: " . DB::table('btc_history')->sum('trade_commission') . "\n";
+
 
                         $messageArray['flag'] = "buy"; // Send flag to VueJS app.js. On this event VueJS is informed that the trade occurred
 
-                    }
+                    } // BUY trade
 
                     // If < low price channel. SELL
                     if (($nojsonMessage[2][3] < $price_channel_low_value) && ($this->trade_flag == "all"  || $this->trade_flag == "short")) { // price < price channel
@@ -278,11 +295,24 @@ class RatchetWebSocket extends Command
                                 'trade_date' => gmdate("Y-m-d G:i:s", ($nojsonMessage[2][1] / 1000)),
                                 'trade_price' => $nojsonMessage[2][3],
                                 'trade_direction' => "sell",
-                                'trade_volume' => 1
+                                'trade_volume' => $this->volume,
+                                // add trade comission. comission_value * volume
+                                'trade_commission' => ($nojsonMessage[2][3] * $commisionValue / 100) * $this->volume,
+
+                                // add accumulated_comission = trade_commision *
+                                'accumulated_commission' => DB::table('btc_history')->sum('trade_commission') + ($nojsonMessage[2][3] * $commisionValue / 100) * $this->volume,
                             ]);
 
+                        echo "nojsonMessage[2][3]" . $nojsonMessage[2][3] . "\n";
+                        echo "commisionValue" . $commisionValue . "\n";
+                        echo "this colume" . $this->volume . "\n";
+                        echo "percent: " . ($nojsonMessage[2][3] * $commisionValue / 100) . "\n";
+                        echo "result: " . ($nojsonMessage[2][3] * $commisionValue / 100) * $this->volume . "\n";
+                        echo "sum: " . DB::table('btc_history')->sum('trade_commission') . "\n";
+
                         $messageArray['flag'] = "sell"; // Send flag to VueJS app.js
-                    }
+
+                    } // Sell trade
 
 
 

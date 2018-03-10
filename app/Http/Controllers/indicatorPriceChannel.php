@@ -44,6 +44,8 @@ class indicatorPriceChannel extends Controller
         */
 
         echo "IndicatorPriceChannel.php Indicator recalculation started\n";
+
+
         $allDbRows = DB::table('btc_history')->orderBy('time_stamp', 'desc')->get(); // desc, asc - order. Read the whole table from BD to $allDbRows
         // desc - from big values to small
         // asc - from small to big

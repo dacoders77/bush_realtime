@@ -24,6 +24,7 @@
 <button id="sell_button">Sell</button>
 <br>
 Bot status: Running
+
 <br><br>
 
 <div id="app"> <!-- VueJS container -->
