@@ -198,6 +198,7 @@ class RatchetWebSocket extends Command
                             ->where('id', 1)
                             ->value('commission_value');
 
+
                     // If > high price channel. BUY
                     if (($nojsonMessage[2][3] > $price_channel_high_value) && ($this->trade_flag == "all" || $this->trade_flag == "long")){ // price > price channel
                         echo "####### HIGH TRADE!\n";
@@ -231,6 +232,8 @@ class RatchetWebSocket extends Command
                         $this->position = "long";
                         $this->add_bar_long = true;
 
+
+
                         // Add(update) trade info to the last(current) bar(record)
                         DB::table('btc_history')
                             ->where('id', $x)
@@ -238,11 +241,9 @@ class RatchetWebSocket extends Command
                                 'trade_date' => gmdate("Y-m-d G:i:s", ($nojsonMessage[2][1] / 1000)),
                                 'trade_price' => $nojsonMessage[2][3],
                                 'trade_direction' => "buy",
-                                //*****
                                 'trade_volume' => $this->volume,
                                 'trade_commission' => ($nojsonMessage[2][3] * $commisionValue / 100) * $this->volume,
-                                'accumulated_commission' => DB::table('btc_history')->sum('trade_commission') + ($nojsonMessage[2][3] * $commisionValue / 100) * $this->volume,
-
+                                'accumulated_commission' => DB::table('btc_history')->sum('trade_commission') + ($nojsonMessage[2][3] * $commisionValue / 100) * $this->volume
                             ]);
 
                         echo "nojsonMessage[2][3]" . $nojsonMessage[2][3] . "\n";
@@ -288,7 +289,9 @@ class RatchetWebSocket extends Command
                         $this->position = "short";
                         $this->add_bar_short = true;
 
+
                         // Add(update) trade info to the last(current) bar(record)
+                        // EXCLUDE THIS CODE TO SEPARATE CLASS!!!!!!!!!!!!!!!!!!!
                         DB::table('btc_history')
                             ->where('id', $x)
                             ->update([
@@ -296,10 +299,7 @@ class RatchetWebSocket extends Command
                                 'trade_price' => $nojsonMessage[2][3],
                                 'trade_direction' => "sell",
                                 'trade_volume' => $this->volume,
-                                // add trade comission. comission_value * volume
                                 'trade_commission' => ($nojsonMessage[2][3] * $commisionValue / 100) * $this->volume,
-
-                                // add accumulated_comission = trade_commision *
                                 'accumulated_commission' => DB::table('btc_history')->sum('trade_commission') + ($nojsonMessage[2][3] * $commisionValue / 100) * $this->volume,
                             ]);
 
@@ -317,9 +317,6 @@ class RatchetWebSocket extends Command
 
 
 
-
-
-
                     // Add new bar to the DB
                     DB::table('btc_history')->insert(array( // Record to DB
                         'date' => gmdate("Y-m-d G:i:s", ($nojsonMessage[2][1] / 1000)), // Date in regular format. Converted from unix timestamp
@@ -330,6 +327,67 @@ class RatchetWebSocket extends Command
                         'low' => $nojsonMessage[2][3],
                         'volume' => $nojsonMessage[2][2],
                     ));
+
+                    // Get the price of the last trade
+                    $lastTradePrice = // Last trade price
+                        DB::table('btc_history')
+                            ->whereNotNull('trade_price') // not null trade price value
+                            ->orderBy('id', 'desc') // form biggest to smallest values
+                            ->value('trade_price'); // get trade price value
+                    
+                    // Update last bar and calculate trade profit
+                    DB::table('btc_history')
+                        ->where('id', $x)
+                        ->update([
+                            'trade_profit' => ($this->position = "long" ? $nojsonMessage[2][3] - $lastTradePrice : $lastTradePrice - $nojsonMessage[2][3])
+                        ]);
+
+
+                    // 'trade_profit' => ($this->position == "long" ?  $nojsonMessage[2][3] - $lastTradePrice : $lastTradePrice - $nojsonMessage[2][3]),
+
+
+
+                    // After new bar is added - calculate profit. Profit is calculated on each bar
+
+                    // get last trade price. last trade value in the column
+                    // write it on each bar - check
+
+                    // Buy
+                    // If last trade = BUY
+                    // profit = current close - last trade price
+
+                    // Sell
+                    // if last trade = sell
+                    // profit = last trade price - current close
+
+                    /*
+                    $lastTradePrice = // Last trade price
+                    DB::table('btc_history')
+                        ->whereNotNull('trade_price') // not null trade price value
+                        ->orderBy('id', 'desc') // form biggest to smallest values
+                        ->value('trade_price'); // get trade price value
+
+                    $lastTradeDirection = // Last trade direction
+                        DB::table('btc_history')
+                            ->whereNotNull('trade_price') // not null trade price value
+                            ->orderBy('id', 'desc') // form biggest to smallest values
+                            ->value('trade_direction'); // get trade price value
+                    */
+
+
+
+                    //echo "\n---------------------last price: " . $lastTradePrice . " direction: " . $lastTradeDirection . "\n";
+
+
+
+                    // return B::table('files')
+                    //->orderBy('upload_time', 'desc')
+                    //->first();D // desc, descending order. from largest to smallest values
+
+                    // 1st query: Get all not null records
+                    // 2nd query: descending order, first record
+
+
 
                     // Recalculate price channel. Controller call as a method
                     app('App\Http\Controllers\indicatorPriceChannel')->index();

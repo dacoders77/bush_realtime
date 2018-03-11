@@ -38,5 +38,5 @@ route::get('/loaddata', 'LoadDataFromDB@index')->name('loadJsonFromDB');
 // Calculate price channel
 route::get('/pricechannelcalc', 'indicatorPriceChannel@index');
 
-// Place order and pass volume of the trade to it
-route::get('/placeorder/{volume}/{direction}', 'PlaceOrder@index');
+// Place order and volume and direction of the trade to it
+route::get('/placeorder/{volume}/{direction}', 'BitFinexAuthApi\BitFinexAuthApi@PlaceOrder');
