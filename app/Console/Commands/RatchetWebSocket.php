@@ -339,11 +339,10 @@ class RatchetWebSocket extends Command
                     DB::table('btc_history')
                         ->where('id', $x)
                         ->update([
-                            'trade_profit' => ($this->position = "long" ? $nojsonMessage[2][3] - $lastTradePrice : $lastTradePrice - $nojsonMessage[2][3])
+                            'trade_profit' => ($this->position == "long" ? $nojsonMessage[2][3] - $lastTradePrice : $lastTradePrice - $nojsonMessage[2][3])
                         ]);
 
-
-                    // 'trade_profit' => ($this->position == "long" ?  $nojsonMessage[2][3] - $lastTradePrice : $lastTradePrice - $nojsonMessage[2][3]),
+                    echo "\nTernar Test-----------------------: " . ($this->position == "long" ? "long_test" : "short_test") . "\n";
 
 
 
