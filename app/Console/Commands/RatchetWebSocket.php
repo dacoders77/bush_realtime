@@ -334,7 +334,7 @@ class RatchetWebSocket extends Command
                             ->orderBy('id', 'desc') // form biggest to smallest values
                             ->value('trade_price'); // get trade price value
                     
-                    // Update last record and calculate trade profit
+                    // Calculate trade profit
                     DB::table('btc_history')
                         ->where('id', $x)
                         ->update([
@@ -347,6 +347,19 @@ class RatchetWebSocket extends Command
                         ->update([
                            'accumulated_profit' => DB::table('btc_history')->sum('trade_profit')
                         ]);
+
+                    // NET PROFIT
+                    // Accumulated profit - SUM trade commisiom
+                    DB::table('btc_history')
+                        ->where('id', $x)
+                        ->update([
+                            'net_profit' => $this->position != null ? DB::table('btc_history')->where('id', $x)->value('accumulated_profit') - DB::table('btc_history')->sum('trade_commission') : true
+
+                        ]);
+
+
+
+
 
 
 
