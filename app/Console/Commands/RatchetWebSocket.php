@@ -3,8 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\Events\eventTrigger; // Linked the event
-use Carbon\Carbon; // date simple lib https://github.com/briannesbitt/Carbon
+use App\Events\eventTrigger; // Linked events
 use Illuminate\Support\Facades\DB;
 
 class RatchetWebSocket extends Command
@@ -243,7 +242,7 @@ class RatchetWebSocket extends Command
                                 'trade_direction' => "buy",
                                 'trade_volume' => $this->volume,
                                 'trade_commission' => ($nojsonMessage[2][3] * $commisionValue / 100) * $this->volume,
-                                'accumulated_commission' => DB::table('btc_history')->sum('trade_commission') + ($nojsonMessage[2][3] * $commisionValue / 100) * $this->volume
+                                'accumulated_commission' => DB::table('btc_history')->sum('trade_commission') + ($nojsonMessage[2][3] * $commisionValue / 100) * $this->volume,
                             ]);
 
                         echo "nojsonMessage[2][3]" . $nojsonMessage[2][3] . "\n";
@@ -335,56 +334,19 @@ class RatchetWebSocket extends Command
                             ->orderBy('id', 'desc') // form biggest to smallest values
                             ->value('trade_price'); // get trade price value
                     
-                    // Update last bar and calculate trade profit
+                    // Update last record and calculate trade profit
                     DB::table('btc_history')
                         ->where('id', $x)
                         ->update([
-                            'trade_profit' => ($this->position == "long" ? $nojsonMessage[2][3] - $lastTradePrice : $lastTradePrice - $nojsonMessage[2][3])
+                            'trade_profit' => ($this->position != null ? (($this->position == "long" ? ($nojsonMessage[2][3] - $lastTradePrice) * $this->volume : ($lastTradePrice - $nojsonMessage[2][3]) * $this->volume)) : false), // Calculate trade profit only if the position is open. Because we reach this code all the time when high or low price channel boundary is exceeded
                         ]);
 
-                    echo "\nTernar Test-----------------------: " . ($this->position == "long" ? "long_test" : "short_test") . "\n";
-
-
-
-                    // After new bar is added - calculate profit. Profit is calculated on each bar
-
-                    // get last trade price. last trade value in the column
-                    // write it on each bar - check
-
-                    // Buy
-                    // If last trade = BUY
-                    // profit = current close - last trade price
-
-                    // Sell
-                    // if last trade = sell
-                    // profit = last trade price - current close
-
-                    /*
-                    $lastTradePrice = // Last trade price
+                    // Update accumulated profit
                     DB::table('btc_history')
-                        ->whereNotNull('trade_price') // not null trade price value
-                        ->orderBy('id', 'desc') // form biggest to smallest values
-                        ->value('trade_price'); // get trade price value
-
-                    $lastTradeDirection = // Last trade direction
-                        DB::table('btc_history')
-                            ->whereNotNull('trade_price') // not null trade price value
-                            ->orderBy('id', 'desc') // form biggest to smallest values
-                            ->value('trade_direction'); // get trade price value
-                    */
-
-
-
-                    //echo "\n---------------------last price: " . $lastTradePrice . " direction: " . $lastTradeDirection . "\n";
-
-
-
-                    // return B::table('files')
-                    //->orderBy('upload_time', 'desc')
-                    //->first();D // desc, descending order. from largest to smallest values
-
-                    // 1st query: Get all not null records
-                    // 2nd query: descending order, first record
+                        ->where('id', $x)
+                        ->update([
+                           'accumulated_profit' => DB::table('btc_history')->sum('trade_profit')
+                        ]);
 
 
 
