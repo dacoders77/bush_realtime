@@ -175,7 +175,16 @@ class RatchetWebSocket extends Command
                 if (floor(($nojsonMessage[2][1] / 1000)) >= $this->tt){
 
                     // Experiment
-
+                    // Add new bar to the DB
+                    DB::table('btc_history')->insert(array( // Record to DB
+                        'date' => gmdate("Y-m-d G:i:s", ($nojsonMessage[2][1] / 1000)), // Date in regular format. Converted from unix timestamp
+                        'time_stamp' => $nojsonMessage[2][1],
+                        'open' => $nojsonMessage[2][3],
+                        'close' => $nojsonMessage[2][3],
+                        'high' => $nojsonMessage[2][3],
+                        'low' => $nojsonMessage[2][3],
+                        'volume' => $nojsonMessage[2][2],
+                    ));
 
 
 
@@ -333,16 +342,7 @@ class RatchetWebSocket extends Command
 
 
                     // Previous add new bar was here
-                    // Add new bar to the DB
-                    DB::table('btc_history')->insert(array( // Record to DB
-                        'date' => gmdate("Y-m-d G:i:s", ($nojsonMessage[2][1] / 1000)), // Date in regular format. Converted from unix timestamp
-                        'time_stamp' => $nojsonMessage[2][1],
-                        'open' => $nojsonMessage[2][3],
-                        'close' => $nojsonMessage[2][3],
-                        'high' => $nojsonMessage[2][3],
-                        'low' => $nojsonMessage[2][3],
-                        'volume' => $nojsonMessage[2][2],
-                    ));
+
 
 
                     // Get the price of the last trade
