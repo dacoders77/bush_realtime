@@ -71,7 +71,7 @@ class RatchetWebSocket extends Command
                     //'event' => 'ping', // 'event' => 'ping'
                     'event' => 'subscribe',
                     'channel' => 'trades',
-                    'symbol' => 'tETHUSD' // tBTCUSD
+                    'symbol' => 'tBTCUSD' // tBTCUSD tETHUSD
                 ]);
                 $conn->send($z);
 
@@ -126,6 +126,9 @@ class RatchetWebSocket extends Command
                 //echo " volume: " . $nojsonMessage[2][2];
                 //echo " price: " . $nojsonMessage[2][3] . "\n";
 
+                // current trade(tick): $nojsonMessage[2][3]
+                // volume: $nojsonMessage[2][2]
+
                 // Take seconds off and add 1 min. Do it only once per interval (1min)
                 if ($this->dateCompeareFlag) {
                     $x = date("Y-m-d H:i", $nojsonMessage[2][1] / 1000) . "\n"; // Take seconds off. Convert timestamp to date
@@ -134,7 +137,9 @@ class RatchetWebSocket extends Command
                 }
 
                 // Make a signal when value reaches over added 1 minute
-                echo gmdate("Y-m-d G:i:s", ($nojsonMessage[2][1] / 1000)) . " / " . floor(($nojsonMessage[2][1] / 1000)) . " * " . $this->tt . " price: " . $nojsonMessage[2][3] . " vol: " . $nojsonMessage[2][2] . " pos: " . $this->position . "\n";
+                //echo gmdate("Y-m-d G:i:s", ($nojsonMessage[2][1] / 1000)) . " / " . floor(($nojsonMessage[2][1] / 1000)) . " * " . $this->tt . " price: " . $nojsonMessage[2][3] . " vol: " . $nojsonMessage[2][2] . " pos: " . $this->position . "\n";
+                echo "price: " . $nojsonMessage[2][3] . " vol: " . $nojsonMessage[2][2] . " pos: " . $this->position . "\n";
+
 
                 // Calculate high and low of the bar then pass it to the chart in $messageArray
                 if ($nojsonMessage[2][3] > $this->barHigh) // High
@@ -154,6 +159,7 @@ class RatchetWebSocket extends Command
                 // ERROR: Trying to property of non object
                 // Occures when ratchet:start is run for the first time and the history table is empty - no record to update
                 // Start GIU first and then rathcet:start
+                // Updating last bar in the table. At the first run the table is not empty. Historical bars were loaded
                 DB::table('btc_history')
                     ->where('id', DB::table('btc_history')->orderBy('time_stamp', 'desc')->first()->id) // id of the last record. desc - descent order
                     ->update([
@@ -165,8 +171,14 @@ class RatchetWebSocket extends Command
 
 
 
-                // New bar is issued
+                // NEW BAR IS ISSUED
                 if (floor(($nojsonMessage[2][1] / 1000)) >= $this->tt){
+
+                    // Experiment
+
+
+
+
                     echo "************************************** new bar issued\n\n";
                     $messageArray['flag'] = true; // Added true flag which will inform JS that new bar is issued
                     $this->dateCompeareFlag = true;
@@ -174,9 +186,11 @@ class RatchetWebSocket extends Command
 
 
                     // Trades watch
-                    $x = (DB::table('btc_history')->orderBy('time_stamp', 'desc')->get())[0]->id; // Quantity of all records in DB
+                    // Quantity of all records in DB
+                    $x = (DB::table('btc_history')->orderBy('time_stamp', 'desc')->get())[0]->id;
 
-                    // Get price cchannel value of previous (penultimate bar)
+                    // Get price
+                    // Channel value of previous (penultimate bar)
                     $price_channel_high_value =
                         DB::table('btc_history')
                             ->where('id', ($x - 1)) // Penultimate record. One before last
@@ -199,7 +213,8 @@ class RatchetWebSocket extends Command
 
 
                     // If > high price channel. BUY
-                    if (($nojsonMessage[2][3] > $price_channel_high_value) && ($this->trade_flag == "all" || $this->trade_flag == "long")){ // price > price channel
+                    // price > price channel
+                    if (($nojsonMessage[2][3] > $price_channel_high_value) && ($this->trade_flag == "all" || $this->trade_flag == "long")){
                         echo "####### HIGH TRADE!\n";
 
                         // trading allowed?
@@ -232,7 +247,6 @@ class RatchetWebSocket extends Command
                         $this->add_bar_long = true;
 
 
-
                         // Add(update) trade info to the last(current) bar(record)
                         DB::table('btc_history')
                             ->where('id', $x)
@@ -252,10 +266,13 @@ class RatchetWebSocket extends Command
                         echo "result: " . ($nojsonMessage[2][3] * $commisionValue / 100) * $this->volume . "\n";
                         echo "sum: " . DB::table('btc_history')->sum('trade_commission') . "\n";
 
-
                         $messageArray['flag'] = "buy"; // Send flag to VueJS app.js. On this event VueJS is informed that the trade occurred
 
                     } // BUY trade
+
+
+
+
 
                     // If < low price channel. SELL
                     if (($nojsonMessage[2][3] < $price_channel_low_value) && ($this->trade_flag == "all"  || $this->trade_flag == "short")) { // price < price channel
@@ -315,7 +332,7 @@ class RatchetWebSocket extends Command
 
 
 
-
+                    // Previous add new bar was here
                     // Add new bar to the DB
                     DB::table('btc_history')->insert(array( // Record to DB
                         'date' => gmdate("Y-m-d G:i:s", ($nojsonMessage[2][1] / 1000)), // Date in regular format. Converted from unix timestamp
@@ -327,35 +344,40 @@ class RatchetWebSocket extends Command
                         'volume' => $nojsonMessage[2][2],
                     ));
 
+
                     // Get the price of the last trade
                     $lastTradePrice = // Last trade price
                         DB::table('btc_history')
                             ->whereNotNull('trade_price') // not null trade price value
                             ->orderBy('id', 'desc') // form biggest to smallest values
                             ->value('trade_price'); // get trade price value
-                    
+
                     // Calculate trade profit
                     DB::table('btc_history')
-                        ->where('id', $x)
+                        ->where('id', (DB::table('btc_history')->orderBy('time_stamp', 'desc')->get())[0]->id) // Quantity of all records in DB
                         ->update([
                             'trade_profit' => ($this->position != null ? (($this->position == "long" ? ($nojsonMessage[2][3] - $lastTradePrice) * $this->volume : ($lastTradePrice - $nojsonMessage[2][3]) * $this->volume)) : false), // Calculate trade profit only if the position is open. Because we reach this code all the time when high or low price channel boundary is exceeded
                         ]);
 
                     // Update accumulated profit
                     DB::table('btc_history')
-                        ->where('id', $x)
+                        ->where('id', (DB::table('btc_history')->orderBy('time_stamp', 'desc')->get())[0]->id) // Quantity of all records in DB
                         ->update([
-                           'accumulated_profit' => DB::table('btc_history')->sum('trade_profit')
+                            'accumulated_profit' => DB::table('btc_history')->sum('trade_profit')
                         ]);
 
                     // NET PROFIT
                     // Accumulated profit - SUM trade commisiom
                     DB::table('btc_history')
-                        ->where('id', $x)
+                        ->where('id', (DB::table('btc_history')->orderBy('time_stamp', 'desc')->get())[0]->id) // Quantity of all records in DB
                         ->update([
-                            'net_profit' => $this->position != null ? DB::table('btc_history')->where('id', $x)->value('accumulated_profit') - DB::table('btc_history')->sum('trade_commission') : true
+                            'net_profit' => $this->position != null ? DB::table('btc_history')
+                                    ->where('id', (DB::table('btc_history')->orderBy('time_stamp', 'desc')->get())[0]->id) // Quantity of all records in DB
+                                    ->value('accumulated_profit') - DB::table('btc_history')
+                                    ->sum('trade_commission') : true
 
                         ]);
+
 
 
 
@@ -366,7 +388,7 @@ class RatchetWebSocket extends Command
                     // Recalculate price channel. Controller call as a method
                     app('App\Http\Controllers\indicatorPriceChannel')->index();
 
-                }
+                } // New bar is issued
 
                 // Add calculated values to associative array
                 $messageArray['tradeId'] = $nojsonMessage[2][0]; // $messageArray['flag'] = true; And all these values will be sent to VueJS

@@ -26,7 +26,7 @@ class HistoryFinex extends Controller
 
 
         $timeframe = "1m";
-        $asset = "ETHUSD"; // "BTCUSD"
+        $asset = "BTCUSD"; // "BTCUSD" ETHUSD
 
 
         //echo DB::table('btc_history')->orderBy('time_stamp', 'desc')->first();
