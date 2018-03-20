@@ -186,6 +186,45 @@ class RatchetWebSocket extends Command
                         'volume' => $nojsonMessage[2][2],
                     ));
 
+                    // Get the price of the last trade
+                    $lastTradePrice = // Last trade price
+                        DB::table('btc_history')
+                            ->whereNotNull('trade_price') // not null trade price value
+                            ->orderBy('id', 'desc') // form biggest to smallest values
+                            ->value('trade_price'); // get trade price value
+
+                    // Calculate trade profit
+                    DB::table('btc_history')
+                        ->where('id', (DB::table('btc_history')->orderBy('time_stamp', 'desc')->get())[0]->id) // Quantity of all records in DB
+                        ->update([
+                            'trade_profit' => ($this->position != null ? (($this->position == "long" ? ($nojsonMessage[2][3] - $lastTradePrice) * $this->volume : ($lastTradePrice - $nojsonMessage[2][3]) * $this->volume)) : false), // Calculate trade profit only if the position is open. Because we reach this code all the time when high or low price channel boundary is exceeded
+                        ]);
+
+                    // Update accumulated profit
+                    DB::table('btc_history')
+                        ->where('id', (DB::table('btc_history')->orderBy('time_stamp', 'desc')->get())[0]->id) // Quantity of all records in DB
+                        ->update([
+                            'accumulated_profit' => DB::table('btc_history')->sum('trade_profit')
+                        ]);
+
+                    // NET PROFIT
+                    // Accumulated profit - SUM trade commisiom
+                    DB::table('btc_history')
+                        ->where('id', (DB::table('btc_history')->orderBy('time_stamp', 'desc')->get())[0]->id) // Quantity of all records in DB
+                        ->update([
+                            'net_profit' => $this->position != null ? DB::table('btc_history')
+                                    ->where('id', (DB::table('btc_history')->orderBy('time_stamp', 'desc')->get())[0]->id) // Quantity of all records in DB
+                                    ->value('accumulated_profit') - DB::table('btc_history')
+                                    ->sum('trade_commission') : true
+
+                        ]);
+
+
+
+
+
+
+
 
 
                     echo "************************************** new bar issued\n\n";
@@ -342,41 +381,6 @@ class RatchetWebSocket extends Command
 
 
                     // Previous add new bar was here
-
-
-
-                    // Get the price of the last trade
-                    $lastTradePrice = // Last trade price
-                        DB::table('btc_history')
-                            ->whereNotNull('trade_price') // not null trade price value
-                            ->orderBy('id', 'desc') // form biggest to smallest values
-                            ->value('trade_price'); // get trade price value
-
-                    // Calculate trade profit
-                    DB::table('btc_history')
-                        ->where('id', (DB::table('btc_history')->orderBy('time_stamp', 'desc')->get())[0]->id) // Quantity of all records in DB
-                        ->update([
-                            'trade_profit' => ($this->position != null ? (($this->position == "long" ? ($nojsonMessage[2][3] - $lastTradePrice) * $this->volume : ($lastTradePrice - $nojsonMessage[2][3]) * $this->volume)) : false), // Calculate trade profit only if the position is open. Because we reach this code all the time when high or low price channel boundary is exceeded
-                        ]);
-
-                    // Update accumulated profit
-                    DB::table('btc_history')
-                        ->where('id', (DB::table('btc_history')->orderBy('time_stamp', 'desc')->get())[0]->id) // Quantity of all records in DB
-                        ->update([
-                            'accumulated_profit' => DB::table('btc_history')->sum('trade_profit')
-                        ]);
-
-                    // NET PROFIT
-                    // Accumulated profit - SUM trade commisiom
-                    DB::table('btc_history')
-                        ->where('id', (DB::table('btc_history')->orderBy('time_stamp', 'desc')->get())[0]->id) // Quantity of all records in DB
-                        ->update([
-                            'net_profit' => $this->position != null ? DB::table('btc_history')
-                                    ->where('id', (DB::table('btc_history')->orderBy('time_stamp', 'desc')->get())[0]->id) // Quantity of all records in DB
-                                    ->value('accumulated_profit') - DB::table('btc_history')
-                                    ->sum('trade_commission') : true
-
-                        ]);
 
 
 
