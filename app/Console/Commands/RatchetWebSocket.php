@@ -208,29 +208,18 @@ class RatchetWebSocket extends Command
                         ]);
 
 
-
-
-                    /*
-                    DB::table('btc_history')
-                        ->where('id', (DB::table('btc_history')->orderBy('time_stamp', 'desc')->get())[0]->id) // Quantity of all records in DB
-                        ->update([
-                            'accumulated_profit' => DB::table('btc_history')->sum('trade_profit')
-                        ]);
-                    */
-
                     // NET PROFIT
-                    // Accumulated profit - SUM trade commisiom
-                    /*
                     DB::table('btc_history')
                         ->where('id', (DB::table('btc_history')->orderBy('time_stamp', 'desc')->get())[0]->id) // Quantity of all records in DB
                         ->update([
-                            'net_profit' => $this->position != null ? DB::table('btc_history')
-                                    ->where('id', (DB::table('btc_history')->orderBy('time_stamp', 'desc')->get())[0]->id) // Quantity of all records in DB
-                                    ->value('accumulated_profit') - DB::table('btc_history')
-                                    ->sum('trade_commission') : true
+                            'net_profit' => (DB::table('btc_history')
+                                ->where('id', DB::table('btc_history')->orderBy('time_stamp', 'desc')->first()->id)
+                                ->value('accumulated_profit')) -
+                                (DB::table('btc_history')
+                                    ->where('id', DB::table('btc_history')->orderBy('time_stamp', 'desc')->first()->id)
+                                    ->value('accumulated_commission'))
 
                         ]);
-                    */
 
 
 
@@ -394,9 +383,6 @@ class RatchetWebSocket extends Command
 
 
                     // Previous add new bar was here
-
-
-
                     // Trade profit was here
 
                     // Update accumulated profit
