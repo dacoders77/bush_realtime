@@ -365,21 +365,8 @@ class RatchetWebSocket extends Command
 
 
 
-                    // OLD. ACCUMULATED_PROFIT (on each bar)
-                    /*
-                    DB::table('btc_history')
-                        ->where('id', $x)
-                        //->whereNotNull('trade_direction')
-                        ->update([
-                            'accumulated_profit' =>
-                                DB::table('btc_history')
-                                    ->whereNotNull('trade_direction')
-                                    ->sum('trade_profit')
 
-                        ]);
-                    */
-
-                    // NEW ACCUMULATED PROFIT!!!!
+                    // NEW ACCUMULATED PROFIT
                     // Get the the if of last row where trade direction is not null
                     $lastNotNullTradeRow =
                         DB::table('btc_history')
@@ -404,15 +391,10 @@ class RatchetWebSocket extends Command
                         ]);
 
                     $this->info("penultimateAccumProfitValue: " . $penultimateAccumProfitValue);
-                    //die();
 
 
 
-
-
-
-
-                    // NET PROFIT (test)
+                    // NET PROFIT net_profit
                     $accumulatedProfit =
                         DB::table('btc_history')
                             ->where('id', (DB::table('btc_history')->orderBy('time_stamp', 'desc')->first()->id))
@@ -429,9 +411,25 @@ class RatchetWebSocket extends Command
                             'net_profit' => $accumulatedProfit - $accumulatedCommission
                         ]);
 
-                    $this->error("accumulatedCommission: " . $accumulatedCommission);
-                    $this->comment("accumulatedProfit:" . $accumulatedProfit);
+
+                    // NET PROFIT net_profit_test ********************************************
+
+                    $netProfitTest =
+                        $penultimateAccumProfitValue + // Accumulated value penultimate row. 1 step before trade
+                        DB::table('btc_history') // Current value of trade profit
+                            ->where('id', $x)
+                            ->value('trade_profit') -
+                        DB::table('btc_history')->sum('trade_commission'); // Trade commission column sum
+
+                    DB::table('btc_history')
+                        ->where('id', DB::table('btc_history')->orderBy('time_stamp', 'desc')->first()->id) // Quantity of all records in DB
+                        ->update([
+                            'net_profit_test' => $netProfitTest
+                        ]);
+
+                    $this->comment("netProfitTest:" . $netProfitTest);
                     //die();
+
 
 
 
