@@ -64,7 +64,10 @@ class RatchetWebSocket extends Command
 
                 $conn->on('close', function($code = null, $reason = null) {
                     echo "Connection closed ({$code} - {$reason})\n";
-                    echo "line 67. connection close";
+                    $this->eror("line 67. connection closed");
+                    $this->eror("Reconnecting back!");
+                    $this->handle();
+
                 });
 
                 //$conn->send(['event' => 'ping']);
@@ -209,8 +212,7 @@ class RatchetWebSocket extends Command
                             'trade_profit' => ($this->position != null ? (($this->position == "long" ? ($nojsonMessage[2][3] - $lastTradePrice) * $this->volume : ($lastTradePrice - $nojsonMessage[2][3]) * $this->volume)) : false), // Calculate trade profit only if the position is open. Because we reach this code all the time when high or low price channel boundary is exceeded
                         ]);
 
-
-                    echo "************************************** new bar issued\n\n";
+                    $this->line("************************************** new bar issued");
                     $messageArray['flag'] = true; // Added true flag which will inform JS that new bar is issued
                     $this->dateCompeareFlag = true;
 
@@ -363,11 +365,8 @@ class RatchetWebSocket extends Command
 
 
 
-                    // Previous add new bar was here
-                    // Trade profit was here
-
-                    // Update accumulated profit
-                    // sum (trade_profit) where (trade_direction != 0)
+                    // OLD. ACCUMULATED_PROFIT (on each bar)
+                    /*
                     DB::table('btc_history')
                         ->where('id', $x)
                         //->whereNotNull('trade_direction')
@@ -377,13 +376,43 @@ class RatchetWebSocket extends Command
                                     ->whereNotNull('trade_direction')
                                     ->sum('trade_profit')
 
+                        ]);
+                    */
+
+                    // NEW ACCUMULATED PROFIT!!!!
+                    // Get the the if of last row where trade direction is not null
+                    $lastNotNullTradeRow =
+                        DB::table('btc_history')
+                            ->whereNotNull('trade_direction')
+                            ->orderBy('time_stamp', 'desc')->first()->id;
+
+                    $penultimateAccumProfitValue =
+                        DB::table('btc_history')
+                            ->where('id', $lastNotNullTradeRow - 1) // Penultimate record. One before last
+                            ->value('accumulated_profit');
+
+                    // update
+                    DB::table('btc_history')
+                        ->where('id', $x)
+                        //->whereNotNull('trade_direction')
+                        ->update([
+                            'accumulated_profit' => $penultimateAccumProfitValue +
+                                DB::table('btc_history')
+                                    ->where('id', $x)
+                                    ->value('trade_profit')
 
                         ]);
+
+                    $this->info("penultimateAccumProfitValue: " . $penultimateAccumProfitValue);
+                    //die();
+
+
+
+
 
 
 
                     // NET PROFIT (test)
-
                     $accumulatedProfit =
                         DB::table('btc_history')
                             ->where('id', (DB::table('btc_history')->orderBy('time_stamp', 'desc')->first()->id))
@@ -400,12 +429,9 @@ class RatchetWebSocket extends Command
                             'net_profit' => $accumulatedProfit - $accumulatedCommission
                         ]);
 
-                    echo "accumulatedProfit: " . $accumulatedProfit . "\n";
-                    echo "accumulatedCommission: " . $accumulatedCommission . "\n";
+                    $this->error("accumulatedCommission: " . $accumulatedCommission);
+                    $this->comment("accumulatedProfit:" . $accumulatedProfit);
                     //die();
-
-
-
 
 
 
