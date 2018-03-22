@@ -387,7 +387,7 @@ class RatchetWebSocket extends Command
                     $accumulatedProfit =
                         DB::table('btc_history')
                             ->where('id', (DB::table('btc_history')->orderBy('time_stamp', 'desc')->first()->id))
-                            ->value('trade_profit');
+                            ->value('accumulated_profit'); // Accum profit added
 
                     $accumulatedCommission =
                         DB::table('btc_history')
