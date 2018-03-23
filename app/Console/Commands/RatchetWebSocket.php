@@ -64,8 +64,8 @@ class RatchetWebSocket extends Command
 
                 $conn->on('close', function($code = null, $reason = null) {
                     echo "Connection closed ({$code} - {$reason})\n";
-                    $this->eror("line 67. connection closed");
-                    $this->eror("Reconnecting back!");
+                    $this->error("line 67. connection closed");
+                    $this->error("Reconnecting back!");
                     $this->handle();
 
                 });
@@ -105,6 +105,7 @@ class RatchetWebSocket extends Command
     public $add_bar_short = true;
     public $position; // Current position
     public $volume = "0.025"; // Asset amount for order opening
+    public $firstPositionEver = true; // Skip the first trade record. When it occurs we ignore calculations and make accumulated_profit = 0. On the next step (next bar) there will be the link to this value
     public $firstEverTradeFlag = true; // True - when the bot is started and the first trade is executed. Then flag turns to false and trade volume is doubled for closing current position and opening the opposite
 
 
@@ -205,14 +206,19 @@ class RatchetWebSocket extends Command
 
 
                     // Calculate trade profit
-                    DB::table('btc_history')
-                        ->where('id', DB::table('btc_history')->orderBy('time_stamp', 'desc')->first()->id)
-                        ->update([
-                            // Calculate trade profit only if the position is open. Because we reach this code all the time when high or low price channel boundary is exceeded
-                            'trade_profit' => ($this->position != null ? (($this->position == "long" ? ($nojsonMessage[2][3] - $lastTradePrice) * $this->volume : ($lastTradePrice - $nojsonMessage[2][3]) * $this->volume)) : false), // Calculate trade profit only if the position is open. Because we reach this code all the time when high or low price channel boundary is exceeded
-                        ]);
+                    $tradeProfit = ($this->position != null ? (($this->position == "long" ? ($nojsonMessage[2][3] - $lastTradePrice) * $this->volume : ($lastTradePrice - $nojsonMessage[2][3]) * $this->volume)) : false); // Calculate trade profit only if the position is open. Because we reach this code all the time when high or low price channel boundary is exceeded
 
-                    $this->line("************************************** new bar issued");
+                    if ($this->position != null){ // Do not calculate progit if there is not open position. If do not do this check - zeros in table occurs
+                        DB::table('btc_history')
+                            ->where('id', DB::table('btc_history')->orderBy('time_stamp', 'desc')->first()->id)
+                            ->update([
+                                // Calculate trade profit only if the position is open. Because we reach this code all the time when high or low price channel boundary is exceeded
+                                'trade_profit' => $tradeProfit,
+                            ]);
+                    }
+
+
+                    $this->line("\n************************************** new bar issued");
                     $messageArray['flag'] = true; // Added true flag which will inform JS that new bar is issued
                     $this->dateCompeareFlag = true;
 
@@ -352,12 +358,12 @@ class RatchetWebSocket extends Command
                                 'accumulated_commission' => DB::table('btc_history')->sum('trade_commission') + ($nojsonMessage[2][3] * $commisionValue / 100) * $this->volume,
                             ]);
 
-                        echo "nojsonMessage[2][3]" . $nojsonMessage[2][3] . "\n";
-                        echo "commisionValue" . $commisionValue . "\n";
-                        echo "this colume" . $this->volume . "\n";
-                        echo "percent: " . ($nojsonMessage[2][3] * $commisionValue / 100) . "\n";
-                        echo "result: " . ($nojsonMessage[2][3] * $commisionValue / 100) * $this->volume . "\n";
-                        echo "sum: " . DB::table('btc_history')->sum('trade_commission') . "\n";
+                        //echo "nojsonMessage[2][3]" . $nojsonMessage[2][3] . "\n";
+                        //echo "commisionValue" . $commisionValue . "\n";
+                        //echo "this colume" . $this->volume . "\n";
+                        //echo "percent: " . ($nojsonMessage[2][3] * $commisionValue / 100) . "\n";
+                        //echo "result: " . ($nojsonMessage[2][3] * $commisionValue / 100) * $this->volume . "\n";
+                        //echo "sum: " . DB::table('btc_history')->sum('trade_commission') . "\n";
 
                         $messageArray['flag'] = "sell"; // Send flag to VueJS app.js
 
@@ -366,59 +372,108 @@ class RatchetWebSocket extends Command
 
 
 
-                    // NEW ACCUMULATED PROFIT
+                    // ****RECALCULATED ACCUMULATED PROFIT****
                     // Get the the if of last row where trade direction is not null
-                    $lastNotNullTradeRow =
+
+                    // if trade direction == null
+                    $tradeDirection =
                         DB::table('btc_history')
-                            ->whereNotNull('trade_direction')
-                            ->orderBy('time_stamp', 'desc')->first()->id;
+                            ->where('id', (DB::table('btc_history')->orderBy('time_stamp', 'desc')->first()->id))
+                            ->value('trade_direction');
 
-                    $penultimateAccumProfitValue =
+                    if ($tradeDirection == null && $this->position != null){
+
+                        $lastAccumProfitValue =
+                            DB::table('btc_history')
+                                ->whereNotNull('trade_direction')
+                                ->orderBy('id', 'desc')
+                                ->value('accumulated_profit');
                         DB::table('btc_history')
-                            ->where('id', $lastNotNullTradeRow - 1) // Penultimate record. One before last
-                            ->value('accumulated_profit');
+                            ->where('id', DB::table('btc_history')->orderBy('time_stamp', 'desc')->first()->id) // id of the last record. desc - descent order
+                            ->update([
+                                'accumulated_profit' => $lastAccumProfitValue + $tradeProfit
+                                //'accumulated_profit' => 789789
+                            ]);
 
-                    // update
-                    DB::table('btc_history')
-                        ->where('id', $x)
-                        //->whereNotNull('trade_direction')
-                        ->update([
-                            'accumulated_profit' => $penultimateAccumProfitValue +
-                                DB::table('btc_history')
-                                    ->where('id', $x)
-                                    ->value('trade_profit')
+                        $this->error("Bar with no trade");
+                        $this->info("lastAccumProfitValue: " . $lastAccumProfitValue . " tradeProfit: ". $tradeProfit);
+                        //die();
+                    }
 
-                        ]);
+                    if ($tradeDirection != null && $this->firstPositionEver == false) // Means that at this bar trade has occurred
+                    {
 
-                    $this->info("penultimateAccumProfitValue: " . $penultimateAccumProfitValue);
+                        //transition::orderBy('created_at', 'desc')->skip(1)->take(1)->get();
+
+                        $nextToLastDirection =
+                            DB::table('btc_history')
+                                ->whereNotNull('trade_direction')
+                                ->orderBy('id', 'desc')->skip(1)->take(1) // Second to last (penultimate). ->get()
+                                ->value('accumulated_profit');
+
+
+                        DB::table('btc_history')
+                            ->where('id', DB::table('btc_history')->orderBy('time_stamp', 'desc')->first()->id) // id of the last record. desc - descent order
+                            ->update([
+                                'accumulated_profit' => $nextToLastDirection + $tradeProfit
+                            ]);
+
+                        $this->error("Bar with trade. nextToLastDirection: " . $nextToLastDirection);
+                    }
+
+                    // 1. Skip the first trade. Record 0 to accumulated_profit cell. This code fires once only at the first trade
+                    if ($tradeDirection != null && $this->firstPositionEver == true){
+
+                        DB::table('btc_history')
+                            ->where('id', DB::table('btc_history')->orderBy('time_stamp', 'desc')->first()->id) // id of the last record. desc - descent order
+                            ->update([
+                                'accumulated_profit' => 0
+                            ]);
+
+                        $this->error("firstPositionEver!");
+                        $this->firstPositionEver = false;
+
+                    }
+
+
+
+
+
+
+
+
 
 
 
                     // NET PROFIT net_profit
-                    $accumulatedProfit =
+                    if ($this->position != null){
+
+                        $accumulatedProfit =
+                            DB::table('btc_history')
+                                ->where('id', (DB::table('btc_history')->orderBy('time_stamp', 'desc')->first()->id))
+                                ->value('accumulated_profit');
+
+                        $accumulatedCommission =
+                            DB::table('btc_history')
+                                ->where('id', (DB::table('btc_history')->orderBy('time_stamp', 'desc')->first()->id))
+                                ->value('accumulated_commission');
+
                         DB::table('btc_history')
-                            ->where('id', (DB::table('btc_history')->orderBy('time_stamp', 'desc')->first()->id))
-                            ->value('accumulated_profit'); // Accum profit added
+                            ->where('id', DB::table('btc_history')->orderBy('time_stamp', 'desc')->first()->id) // Quantity of all records in DB
+                            ->update([
+                                'net_profit' => $accumulatedProfit - $accumulatedCommission
+                            ]);
 
-                    $accumulatedCommission =
-                        DB::table('btc_history')
-                            ->where('id', (DB::table('btc_history')->orderBy('time_stamp', 'desc')->first()->id))
-                            ->value('accumulated_commission');
-
-                    DB::table('btc_history')
-                        ->where('id', DB::table('btc_history')->orderBy('time_stamp', 'desc')->first()->id) // Quantity of all records in DB
-                        ->update([
-                            'net_profit' => $accumulatedProfit - $accumulatedCommission
-                        ]);
+                    }
 
 
-                    // NET PROFIT net_profit_test ********************************************
 
+                    // NET PROFIT net_profit_test ******************************************** IS RECORDED TO A SEPARATE COLUMN
+                    // accum_profit - last accum commission
                     $netProfitTest =
-                        $penultimateAccumProfitValue + // Accumulated value penultimate row. 1 step before trade
                         DB::table('btc_history') // Current value of trade profit
-                            ->where('id', $x)
-                            ->value('trade_profit') -
+                            ->where('id', DB::table('btc_history')->orderBy('time_stamp', 'desc')->first()->id)
+                            ->value('accumulated_profit') -
                         DB::table('btc_history')->sum('trade_commission'); // Trade commission column sum
 
                     DB::table('btc_history')
@@ -428,7 +483,7 @@ class RatchetWebSocket extends Command
                         ]);
 
                     $this->comment("netProfitTest:" . $netProfitTest);
-                    //die();
+
 
 
 

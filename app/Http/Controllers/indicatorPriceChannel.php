@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\DB;
 
 use Illuminate\Http\Request;
 
+
 /**
  * Class indicatorPriceChannel
  * This class calculates price channel high, low values based on data read from DB.
@@ -32,6 +33,7 @@ class indicatorPriceChannel extends Controller
         $elementIndex = 0;
         $priceChannelHighValue = 0;
         $priceChannelLowValue = 999999;
+
 
         /*
         DB::table('btc_history')
