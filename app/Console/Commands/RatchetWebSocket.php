@@ -46,7 +46,7 @@ class RatchetWebSocket extends Command
     {
         echo "*****Ratchet websocket console command(app) started!*****\n";
 
-        $timeframe =
+        $this->timeFrame =
             DB::table('settings')
                 ->where('id', 1)
                 ->value('time_frame');
