@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 class RatchetWebSocket extends Command
 {
     public $symbol; // Trading symbol
+    public $timeFrame;
 
     /**
      * The name and signature of the console command.
@@ -44,6 +45,11 @@ class RatchetWebSocket extends Command
     public function handle()
     {
         echo "*****Ratchet websocket console command(app) started!*****\n";
+
+        $timeframe =
+            DB::table('settings')
+                ->where('id', 1)
+                ->value('time_frame');
 
         // Get traded symbol from DB. String must look like: tBTCUSD
         // MAKE IT UPPER CASE!
@@ -149,7 +155,7 @@ class RatchetWebSocket extends Command
                 // Take seconds off and add 1 min. Do it only once per interval (for example 1min)
                 if ($this->dateCompeareFlag) {
                     $x = date("Y-m-d H:i", $nojsonMessage[2][1] / 1000) . "\n"; // Take seconds off. Convert timestamp to date
-                    $this->tt = strtotime($x . '2 minute'); // Timeframe. Added 1 minute. Timestamp
+                    $this->tt = strtotime($x . $this->timeFrame . 'minute'); // Timeframe. Added 1 minute. Timestamp
                     $this->dateCompeareFlag = false;
                 }
 
