@@ -25,7 +25,7 @@ class HistoryFinex extends Controller
     public function index($param){
 
 
-        $timeframe =
+        $timeframe = 
             DB::table('settings')
                 ->where('id', 1)
                 ->value('time_frame') . "m";
@@ -54,6 +54,7 @@ class HistoryFinex extends Controller
             ]);
 
             //$restEndpoint = "candles/trade:" . $timeframe . ":t" . $asset . "/hist?limit=20&start=" . $start . "&end=" . $end . "&sort=1";
+
             $restEndpoint = "candles/trade:" . $timeframe . ":t" . $asset . "/hist?limit=" . DB::table('settings')->where('id', 1)->value('request_bars'); // Gets bars from the present moment. No dates needed. Values must be reversed befor adding to DB. Otherwise - the chart is not properly rendered, all bars look fat
 
             // http://docs.guzzlephp.org/en/stable/request-options.html#http-errors
