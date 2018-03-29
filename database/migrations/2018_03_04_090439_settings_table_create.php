@@ -16,6 +16,7 @@ class SettingsTableCreate extends Migration
         Schema::create('settings', function (Blueprint $table) {
             $table->increments('id');
             $table->boolean('initial_start');
+            $table->string('symbol');
             $table->integer('time_frame');
             $table->integer('request_bars');
             $table->integer('price_channel_period');
@@ -25,7 +26,9 @@ class SettingsTableCreate extends Migration
 
         DB::table('settings')->insert(array(
             'initial_start' => 1,
+
             'time_frame' => 5,
+            'symbol' => "BTCUSD",
             'request_bars' => 30,
             'price_channel_period' => 1,
             'allow_trading' => 0,

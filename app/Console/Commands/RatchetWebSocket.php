@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\DB;
 
 class RatchetWebSocket extends Command
 {
+    public $symbol; // Trading symbol
+
     /**
      * The name and signature of the console command.
      *
@@ -43,8 +45,17 @@ class RatchetWebSocket extends Command
     {
         echo "*****Ratchet websocket console command(app) started!*****\n";
 
-        // The code from: https://github.com/ratchetphp/Pawl
+        // Get traded symbol from DB. String must look like: tBTCUSD
+        // MAKE IT UPPER CASE!
+        $this->symbol = "t" .
+            DB::table('settings')
+                ->where('id', 1)
+                ->value('symbol');
 
+        //$this->symbol = "tBTCUSD";
+        //dd ($this->symbol);
+
+        // Code from: https://github.com/ratchetphp/Pawl
         $loop = \React\EventLoop\Factory::create();
         $reactConnector = new \React\Socket\Connector($loop, [
             'dns' => '8.8.8.8', // Does not work through OKADO inernet provider. Timeout error
@@ -75,7 +86,7 @@ class RatchetWebSocket extends Command
                     //'event' => 'ping', // 'event' => 'ping'
                     'event' => 'subscribe',
                     'channel' => 'trades',
-                    'symbol' => 'tBTCUSD' // tBTCUSD tETHUSD
+                    'symbol' => $this->symbol // tBTCUSD tETHUSD tETHBTC
                 ]);
                 $conn->send($z);
 
@@ -93,6 +104,7 @@ class RatchetWebSocket extends Command
     // 'tu' - When the actual trade has happened. Delayed for 1-2 seconds from 'te'
     // 'hb' - Heart beating. If there is no new message in the channel for 1 second, Websocket server will send you an heartbeat message in this format
     // SNAPSHOT (the initial message) https://docs.bitfinex.com/docs/ws-general
+
 
     public $dateCompeareFlag = true;
     public $tt; // Time
@@ -134,16 +146,15 @@ class RatchetWebSocket extends Command
                 // current trade(tick): $nojsonMessage[2][3]
                 // volume: $nojsonMessage[2][2]
 
-                // Take seconds off and add 1 min. Do it only once per interval (1min)
+                // Take seconds off and add 1 min. Do it only once per interval (for example 1min)
                 if ($this->dateCompeareFlag) {
                     $x = date("Y-m-d H:i", $nojsonMessage[2][1] / 1000) . "\n"; // Take seconds off. Convert timestamp to date
-                    $this->tt = strtotime($x . '1 minute'); // Added 1 minute. Timestamp
+                    $this->tt = strtotime($x . '2 minute'); // Timeframe. Added 1 minute. Timestamp
                     $this->dateCompeareFlag = false;
                 }
 
                 // Make a signal when value reaches over added 1 minute
-                //echo gmdate("Y-m-d G:i:s", ($nojsonMessage[2][1] / 1000)) . " / " . floor(($nojsonMessage[2][1] / 1000)) . " * " . $this->tt . " price: " . $nojsonMessage[2][3] . " vol: " . $nojsonMessage[2][2] . " pos: " . $this->position . "\n";
-                echo "time: " . gmdate("Y-m-d G:i:s", ($nojsonMessage[2][1] / 1000)) ." price: " . $nojsonMessage[2][3] . " vol: " . $nojsonMessage[2][2] . " pos: " . $this->position . "\n";
+                echo "Ticker: " . $this->symbol . " time: " . gmdate("Y-m-d G:i:s", ($nojsonMessage[2][1] / 1000)) ." price: " . $nojsonMessage[2][3] . " vol: " . $nojsonMessage[2][2] . " pos: " . $this->position . "\n";
 
 
                 // Calculate high and low of the bar then pass it to the chart in $messageArray

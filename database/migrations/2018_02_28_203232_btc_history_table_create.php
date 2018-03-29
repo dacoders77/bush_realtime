@@ -34,6 +34,7 @@ class BtcHistoryTableCreate extends Migration
             $table->double('trade_profit')->nullable();
             $table->double('accumulated_profit')->nullable();
             $table->double('net_profit')->nullable();
+            $table->double('net_profit_test')->nullable();
 
 
         });

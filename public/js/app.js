@@ -1012,14 +1012,14 @@ Vue.component('example-component', __webpack_require__(40));
             error: function(xx) {console.log('ajax: price channel recalculated failed');},
         });
 
-        // Then when reading and storing historical data is over it is readed from the DB and loaded to the chart
+        // When reading and storing historical data is over it is readed from the DB and loaded to the chart
         var request = $.get('loaddata'); // Request initiate. Controller call. AJAX request.
 
 
         // Initial start button click
         $('#chart_redraw').click(function () {
             //chart.redraw();
-            console.log("chart redtaw button clicked");
+            console.log("chart redraw button clicked");
 
             // Request history data
             $.ajax({
