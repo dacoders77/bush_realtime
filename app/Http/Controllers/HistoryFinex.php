@@ -35,9 +35,7 @@ class HistoryFinex extends Controller
             DB::table('settings')
                 ->where('id', env("SETTING_ID"))
                 ->value('symbol');
-
-
-        //echo DB::table('btc_history')->orderBy('time_stamp', 'desc')->first();
+        
         echo "init start: " . DB::table('settings')->where('id', env("SETTING_ID"))->value('initial_start') . " param: " . $param . "<br>";
 
         // If the initial start is true. True is set by default or by Initial start button from the start page. Set to false after history data is loaded
@@ -45,7 +43,7 @@ class HistoryFinex extends Controller
 
             echo "request bars: " . DB::table('settings')->where('id', env("SETTING_ID"))->value('request_bars');
 
-            DB::table('btc_history')->truncate(); // Drop all records in the table
+            DB::table(env("ASSET_TABLE"))->truncate(); // Drop all records in the table
 
             // Create guzzle http client
             $api_connection = new Client([
@@ -71,7 +69,7 @@ class HistoryFinex extends Controller
                 foreach (array_reverse($json) as $z) { // The first element in array is the youngest - first from the left on the chart. Go through the array backwards. This is the order how points will be read from DB and outputed to the chart
 
 
-                    DB::table('btc_history')->insert(array( // Record to DB
+                    DB::table(env("ASSET_TABLE"))->insert(array( // Record to DB
                         'date' => gmdate("Y-m-d G:i:s", ($z[0] / 1000)), // Date in regular format. Converted from unix timestamp
                         'time_stamp' => $z[0],
                         'open' => $z[1],
