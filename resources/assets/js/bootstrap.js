@@ -43,13 +43,15 @@ if (token) {
  * allows your team to easily build robust real-time web applications.
  */
 
+alert(process.env.MIX_PUSHER_APP_KEY);
+
 import Echo from 'laravel-echo'
 
 window.Pusher = require('pusher-js');
 
  window.Echo = new Echo({
      broadcaster: 'pusher',
-     key: process.env.MIX_PUSHER_APP_KEY, // 'f950e12d44372aca7a21'
+     key: process.env.MIX_PUSHER_APP_KEY,
      cluster: 'eu',
      encrypted: true
  });

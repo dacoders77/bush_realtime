@@ -1335,13 +1335,15 @@ if (token) {
  * allows your team to easily build robust real-time web applications.
  */
 
+alert("f950e12d44372aca7a21");
+
 
 
 window.Pusher = __webpack_require__(36);
 
 window.Echo = new __WEBPACK_IMPORTED_MODULE_0_laravel_echo___default.a({
   broadcaster: 'pusher',
-  key: "\"  // MIX_PUSHER_APP_KEY=\"\" // \"f950e12d44372aca7a21", // 'f950e12d44372aca7a21'
+  key: "f950e12d44372aca7a21",
   cluster: 'eu',
   encrypted: true
 });
