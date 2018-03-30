@@ -15,7 +15,7 @@ class LoadDataFromDB extends Controller
         $longTradeMarkers[] = "";
         $shortTradeMarkers[] = "";
 
-        $allDbValues = DB::table('btc_history')->get(); // Read the whole table from BD to $allDbValues
+        $allDbValues = DB::table(env("ASSET_TABLE"))->get(); // Read the whole table from BD to $allDbValues
 
         foreach ($allDbValues as $rowValue) { // Go through the records read from DB
 
