@@ -14,7 +14,7 @@ class BtcHistoryTableCreate extends Migration
     public function up()
     {
 
-        Schema::create('btc_history', function (Blueprint $table) {
+        Schema::create(env("ASSET_TABLE"), function (Blueprint $table) {
             $table->increments('id');
             $table->dateTime('date')->nullable(); // Use nullable if this field can be blank
             $table->bigInteger('time_stamp')->nullable();
@@ -34,8 +34,6 @@ class BtcHistoryTableCreate extends Migration
             $table->double('trade_profit')->nullable();
             $table->double('accumulated_profit')->nullable();
             $table->double('net_profit')->nullable();
-            $table->double('net_profit_test')->nullable();
-
 
         });
     }
@@ -47,6 +45,6 @@ class BtcHistoryTableCreate extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('btc_history');
+        Schema::dropIfExists(env("ASSET_TABLE"));
     }
 }
