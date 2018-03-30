@@ -29,7 +29,7 @@ class indicatorPriceChannel extends Controller
 
     public function index() {
 
-        $priceChannelPeriod = DB::table('settings')->where('id', 1)->value('price_channel_period');
+        $priceChannelPeriod = DB::table('settings')->where('id', env("SETTING_ID"))->value('price_channel_period');
         $elementIndex = 0;
         $priceChannelHighValue = 0;
         $priceChannelLowValue = 999999;
@@ -48,7 +48,7 @@ class indicatorPriceChannel extends Controller
         echo "IndicatorPriceChannel.php Indicator recalculation started\n";
 
 
-        $allDbRows = DB::table('btc_history')->orderBy('time_stamp', 'desc')->get(); // desc, asc - order. Read the whole table from BD to $allDbRows
+        $allDbRows = DB::table(env("ASSET_TABLE"))->orderBy('time_stamp', 'desc')->get(); // desc, asc - order. Read the whole table from BD to $allDbRows
         // desc - from big values to small
         // asc - from small to big
         // in this case: desc. [0] element is the last record in DB. and it's id - quantity of records
@@ -74,7 +74,7 @@ class indicatorPriceChannel extends Controller
 
 
             // $requestBars >= $priceChannelPeriod - 1
-            if ($elementIndex <= DB::table('settings')->where('id', 1)->value('request_bars') - $priceChannelPeriod - 1){ // We must stop before $requestBars untill the end of the array
+            if ($elementIndex <= DB::table('settings')->where('id', env("SETTING_ID"))->value('request_bars') - $priceChannelPeriod - 1){ // We must stop before $requestBars untill the end of the array
 
                 //echo $elementIndex . " " . gmdate("Y-m-d G:i:s", ($z[0] / 1000));
                 //echo "<br>";
@@ -102,7 +102,7 @@ class indicatorPriceChannel extends Controller
                 //echo "_______________________________<br>";
 
 
-                DB::table('btc_history')
+                DB::table(env("ASSET_TABLE"))
                     ->where('time_stamp', $allDbRows[$elementIndex]->time_stamp)
                     ->update([
                         'price_channel_high_value' => $priceChannelHighValue,
