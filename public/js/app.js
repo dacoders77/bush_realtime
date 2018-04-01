@@ -1335,8 +1335,6 @@ if (token) {
  * allows your team to easily build robust real-time web applications.
  */
 
-alert("f950e12d44372aca7a21");
-
 
 
 window.Pusher = __webpack_require__(36);
